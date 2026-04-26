@@ -283,7 +283,7 @@ const Index = () => {
           {category && (
             <div className="space-y-2">
               <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Service</Label>
-              <div className="rounded-sm border border-border divide-y divide-border overflow-hidden bg-card">
+              <div className="rounded-sm border border-border divide-y divide-border overflow-y-auto overscroll-contain bg-card max-h-[60vh] [-webkit-overflow-scrolling:touch] scroll-smooth">
                 {category.services.map((s) => {
                   const selected = s.id === serviceId;
                   return (
