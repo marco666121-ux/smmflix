@@ -233,6 +233,29 @@ const Index = () => {
         </div>
       </header>
 
+      {/* Banner */}
+      {adminSettings.banner.enabled && adminSettings.banner.text.trim() && (
+        <div className="border-b border-primary/30 bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15">
+          <div className="container py-2.5 flex items-center gap-2 justify-center text-center">
+            <Megaphone className="h-4 w-4 text-primary shrink-0" />
+            {adminSettings.banner.link ? (
+              <a
+                href={adminSettings.banner.link}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm font-bold text-foreground hover:text-primary underline-offset-4 hover:underline break-words"
+              >
+                {adminSettings.banner.text}
+              </a>
+            ) : (
+              <span className="text-sm font-bold text-foreground break-words">
+                {adminSettings.banner.text}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Netflix-style hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background pointer-events-none" />
