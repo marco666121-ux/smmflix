@@ -311,7 +311,7 @@ const Index = () => {
       )}
 
       {/* Order form */}
-      <section className="container pb-16">
+      <section id="order-form" className="container pb-16 scroll-mt-24">
         <form
           onSubmit={handleSubmit}
           className="card-surface border border-border/60 rounded-md p-6 sm:p-8 max-w-2xl mx-auto space-y-5 shadow-2xl"
