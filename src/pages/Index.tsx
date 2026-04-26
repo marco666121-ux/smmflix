@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useApiServices, supportWhatsapp } from "@/hooks/useApiServices";
+import { useApiServices } from "@/hooks/useApiServices";
 import Guidelines from "@/components/Guidelines";
 import { PaymentModal } from "@/components/PaymentModal";
-import { useAdminSettings } from "@/lib/adminSettings";
+import { useAdminSettings, applyMarkup } from "@/lib/adminSettings";
 import wordmark from "@/assets/smmflix-wordmark.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { toast } from "@/hooks/use-toast";
-import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles } from "lucide-react";
+import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Index = () => {
