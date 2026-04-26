@@ -34,8 +34,26 @@ const Index = () => {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const adminSettings = useAdminSettings();
-  const { categories, loading, error, newServices, clearNewServices } = useApiServices();
+  const { categories: rawCategories, loading, error, newServices, clearNewServices } = useApiServices();
   const [notifOpen, setNotifOpen] = useState(false);
+
+  const markup = adminSettings.priceMarkupPercent;
+  const supportWa = `https://wa.me/${adminSettings.supportWhatsapp || "918848490476"}`;
+
+  // Apply markup + hide filters to the source-of-truth list
+  const categories = useMemo(() => {
+    const hiddenCats = new Set(adminSettings.hiddenCategoryIds);
+    const hiddenSvcs = new Set(adminSettings.hiddenServiceIds);
+    return rawCategories
+      .filter((c) => !hiddenCats.has(c.id))
+      .map((c) => ({
+        ...c,
+        services: c.services
+          .filter((s) => !hiddenSvcs.has(s.id))
+          .map((s) => ({ ...s, rate: applyMarkup(s.rate, markup) })),
+      }))
+      .filter((c) => c.services.length > 0);
+  }, [rawCategories, adminSettings.hiddenCategoryIds, adminSettings.hiddenServiceIds, markup]);
 
   const category = useMemo(
     () => categories.find((c) => c.id === categoryId),
@@ -46,7 +64,7 @@ const Index = () => {
     [category, serviceId]
   );
 
-  // Global search across all services
+  // Global search across all (post-filter, post-markup) services
   const allServices = useMemo(
     () =>
       categories.flatMap((c) =>
@@ -54,6 +72,13 @@ const Index = () => {
       ),
     [categories]
   );
+
+  // Featured items (preserve admin order, filter out hidden / missing)
+  const featuredItems = useMemo(() => {
+    return adminSettings.featuredServiceIds
+      .map((id) => allServices.find((s) => s.id === id))
+      .filter(Boolean) as typeof allServices;
+  }, [adminSettings.featuredServiceIds, allServices]);
 
   const searchResults = useMemo(() => {
     const q = search.trim().toLowerCase();
