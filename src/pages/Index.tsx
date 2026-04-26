@@ -34,7 +34,8 @@ const Index = () => {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const adminSettings = useAdminSettings();
-  const { categories, loading, error } = useApiServices();
+  const { categories, loading, error, newServices, clearNewServices } = useApiServices();
+  const [notifOpen, setNotifOpen] = useState(false);
 
   const category = useMemo(
     () => categories.find((c) => c.id === categoryId),
