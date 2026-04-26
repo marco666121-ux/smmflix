@@ -272,6 +272,44 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Featured row */}
+      {featuredItems.length > 0 && (
+        <section className="container pb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <Star className="h-5 w-5 text-primary fill-primary" />
+            <h2 className="display text-2xl font-black tracking-wider">FEATURED</h2>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {featuredItems.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => {
+                  setCategoryId(s._categoryId);
+                  setServiceId(s.id);
+                  setSearch("");
+                  document.getElementById("order-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                className="card-surface border border-border/60 rounded-sm p-4 text-left hover:border-primary/60 transition-all hover:scale-[1.02] group"
+              >
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-[10px] font-black text-primary uppercase tracking-widest">#{s.id}</span>
+                  <Star className="h-3.5 w-3.5 text-primary fill-primary" />
+                </div>
+                <div className="text-sm font-semibold leading-snug mb-2 line-clamp-2">{s.name}</div>
+                <div className="text-lg font-black text-foreground">
+                  ₹ {s.rate.toFixed(2)}
+                  <span className="text-[10px] text-muted-foreground font-normal ml-1">/ 1000</span>
+                </div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1 line-clamp-1">
+                  {s._categoryName}
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Order form */}
       <section className="container pb-16">
         <form
