@@ -5,7 +5,6 @@ import { useLiveServices } from "@/hooks/useLiveServices";
 import Guidelines from "@/components/Guidelines";
 import { PaymentModal } from "@/components/PaymentModal";
 import { useAdminSettings } from "@/lib/adminSettings";
-import logo from "@/assets/prime-smm-logo.png";
 import wordmark from "@/assets/smmflix-wordmark.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,13 +120,12 @@ const Index = () => {
       {/* Netflix-style header */}
       <header className="border-b border-border/40 backdrop-blur-xl sticky top-0 z-40 bg-background/80">
         <div className="container flex items-center justify-between py-4">
-          <Link to="/" className="flex items-center gap-3">
-            <img src={logo} alt="SMMFLIX symbol" className="h-10 w-10 object-contain drop-shadow-[0_0_12px_hsl(var(--primary)/0.5)]" />
+          <Link to="/" className="flex items-center">
             <div className="leading-none">
               <img
                 src={wordmark}
                 alt="SMMFLIX"
-                className="h-7 sm:h-8 object-contain drop-shadow-[0_0_18px_hsl(var(--primary)/0.45)]"
+                className="h-9 sm:h-11 object-contain drop-shadow-[0_0_18px_hsl(var(--primary)/0.45)]"
               />
               <div className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mt-1">
                 Premium Services. Premium Results.
@@ -168,11 +166,12 @@ const Index = () => {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background pointer-events-none" />
         <div className="absolute -top-20 -right-20 w-[500px] h-[500px] rounded-full bg-primary/20 blur-[120px] pointer-events-none" />
-        <div className="container relative pt-20 pb-12 text-center">
-          <h1 className="display text-6xl sm:text-8xl font-black leading-[0.9] mb-4 tracking-tight">
-            <span className="text-primary drop-shadow-[0_0_30px_hsl(var(--primary)/0.6)]">PRIME</span>{" "}
-            <span className="text-foreground">SMM</span>
-          </h1>
+        <div className="container relative pt-16 pb-12 text-center flex flex-col items-center">
+          <img
+            src={wordmark}
+            alt="SMMFLIX"
+            className="h-20 sm:h-32 object-contain mb-4 drop-shadow-[0_0_40px_hsl(var(--primary)/0.6)]"
+          />
           <p className="text-muted-foreground max-w-xl mx-auto text-base sm:text-lg uppercase tracking-[0.15em] font-medium">
             Premium Services · Premium Results
           </p>
