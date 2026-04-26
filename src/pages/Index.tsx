@@ -288,7 +288,7 @@ const Index = () => {
                   type="button"
                   role="combobox"
                   aria-expanded={categoryOpen}
-                  className="w-full flex items-center justify-between gap-2 bg-input border border-border rounded-sm px-3 h-10 text-sm hover:border-primary/60 transition-colors"
+                  className="w-full flex items-start justify-between gap-2 bg-input border border-border rounded-sm px-3 py-2 min-h-10 text-sm hover:border-primary/60 transition-colors"
                 >
                   <span className={cn("text-left leading-snug", !category && "text-muted-foreground")}>
                     {category ? category.name : loading ? "Loading categories…" : "Select category"}
