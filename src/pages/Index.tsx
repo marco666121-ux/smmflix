@@ -22,7 +22,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { toast } from "@/hooks/use-toast";
-import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check } from "lucide-react";
+import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Index = () => {
@@ -34,7 +34,8 @@ const Index = () => {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const adminSettings = useAdminSettings();
-  const { categories, loading, error } = useApiServices();
+  const { categories, loading, error, newServices, clearNewServices } = useApiServices();
+  const [notifOpen, setNotifOpen] = useState(false);
 
   const category = useMemo(
     () => categories.find((c) => c.id === categoryId),
@@ -139,7 +140,62 @@ const Index = () => {
               </div>
             </div>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Popover
+              open={notifOpen}
+              onOpenChange={(o) => {
+                setNotifOpen(o);
+                if (!o && newServices.length > 0) clearNewServices();
+              }}
+            >
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="What's new"
+                  className="relative h-10 w-10 grid place-items-center rounded border border-border hover:border-primary text-foreground hover:text-primary transition-colors"
+                >
+                  <Bell className="h-5 w-5" />
+                  {newServices.length > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-primary text-primary-foreground text-[10px] font-black shadow-[0_0_10px_hsl(var(--primary)/0.7)]">
+                      {newServices.length > 99 ? "99+" : newServices.length}
+                    </span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="end"
+                sideOffset={8}
+                className="w-[min(92vw,360px)] p-0 bg-popover border-border"
+              >
+                <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span className="text-xs font-black uppercase tracking-widest">What's New</span>
+                  </div>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
+                    {newServices.length} update{newServices.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+                <div className="max-h-[60vh] overflow-y-auto overscroll-contain divide-y divide-border [-webkit-overflow-scrolling:touch]">
+                  {newServices.length === 0 ? (
+                    <div className="p-6 text-center text-sm text-muted-foreground">
+                      You're all caught up.
+                    </div>
+                  ) : (
+                    newServices.map((n) => (
+                      <div key={n.id} className="p-3">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-primary">New service</span>
+                          <span className="text-xs font-black text-foreground">₹ {n.rate.toFixed(2)}</span>
+                        </div>
+                        <div className="text-sm font-semibold leading-snug mb-1 break-words">{n.name}</div>
+                        <div className="text-[11px] text-muted-foreground uppercase tracking-wider break-words">{n.category}</div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
             <a
               href={supportWhatsapp}
               target="_blank"
@@ -232,16 +288,16 @@ const Index = () => {
                   type="button"
                   role="combobox"
                   aria-expanded={categoryOpen}
-                  className="w-full flex items-center justify-between gap-2 bg-input border border-border rounded-sm px-3 h-10 text-sm hover:border-primary/60 transition-colors"
+                  className="w-full flex items-start justify-between gap-2 bg-input border border-border rounded-sm px-3 py-2 min-h-10 text-sm hover:border-primary/60 transition-colors"
                 >
-                  <span className={cn("truncate text-left", !category && "text-muted-foreground")}>
+                  <span className={cn("text-left leading-snug", !category && "text-muted-foreground")}>
                     {category ? category.name : loading ? "Loading categories…" : "Select category"}
                   </span>
-                  <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
+                  <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 mt-0.5" />
                 </button>
               </PopoverTrigger>
               <PopoverContent
-                className="w-[--radix-popover-trigger-width] p-0 bg-popover border-border"
+                className="w-[min(92vw,520px)] p-0 bg-popover border-border"
                 align="start"
                 sideOffset={6}
               >
@@ -267,7 +323,7 @@ const Index = () => {
                               categoryId === c.id ? "opacity-100 text-primary" : "opacity-0"
                             )}
                           />
-                          <span className="truncate">{c.name}</span>
+                          <span className="leading-snug whitespace-normal break-words">{c.name}</span>
                           <span className="ml-auto text-[10px] text-muted-foreground uppercase tracking-wider">
                             {c.services.length}
                           </span>
