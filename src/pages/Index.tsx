@@ -26,6 +26,7 @@ const Index = () => {
   const [search, setSearch] = useState<string>("");
   const [paymentOpen, setPaymentOpen] = useState(false);
   const adminSettings = useAdminSettings();
+  const { categories, loading, error } = useApiServices();
 
   const category = useMemo(
     () => categories.find((c) => c.id === categoryId),
