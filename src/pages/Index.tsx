@@ -6,7 +6,6 @@ import Guidelines from "@/components/Guidelines";
 import { PaymentModal } from "@/components/PaymentModal";
 import { useAdminSettings } from "@/lib/adminSettings";
 import wordmark from "@/assets/smmflix-wordmark.png";
-import wordmark from "@/assets/smmflix-wordmark.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
