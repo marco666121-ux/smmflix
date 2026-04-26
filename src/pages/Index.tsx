@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { categories, supportWhatsapp } from "@/data/services";
+import { useApiServices, supportWhatsapp } from "@/hooks/useApiServices";
 import Guidelines from "@/components/Guidelines";
 import { PaymentModal } from "@/components/PaymentModal";
 import { useAdminSettings } from "@/lib/adminSettings";
