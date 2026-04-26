@@ -5,6 +5,7 @@ import { useLiveServices } from "@/hooks/useLiveServices";
 import Guidelines from "@/components/Guidelines";
 import { PaymentModal } from "@/components/PaymentModal";
 import { useAdminSettings } from "@/lib/adminSettings";
+import logo from "@/assets/prime-smm-logo.png";
 import wordmark from "@/assets/smmflix-wordmark.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -120,12 +121,13 @@ const Index = () => {
       {/* Netflix-style header */}
       <header className="border-b border-border/40 backdrop-blur-xl sticky top-0 z-40 bg-background/80">
         <div className="container flex items-center justify-between py-4">
-          <Link to="/" className="flex items-center">
+          <Link to="/" className="flex items-center gap-3">
+            <img src={logo} alt="SMMFLIX symbol" className="h-10 w-10 object-contain drop-shadow-[0_0_12px_hsl(var(--primary)/0.5)]" />
             <div className="leading-none">
               <img
                 src={wordmark}
                 alt="SMMFLIX"
-                className="h-9 sm:h-11 object-contain drop-shadow-[0_0_18px_hsl(var(--primary)/0.45)]"
+                className="h-7 sm:h-8 object-contain drop-shadow-[0_0_18px_hsl(var(--primary)/0.45)]"
               />
               <div className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mt-1">
                 Premium Services. Premium Results.
