@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { ADMIN_PASSWORD, getSettings, saveSettings } from "@/lib/adminSettings";
-import logo from "@/assets/prime-smm-logo.png";
+import wordmark from "@/assets/smmflix-wordmark.png";
 import { ArrowLeft } from "lucide-react";
 
 const Admin = () => {
@@ -18,12 +18,9 @@ const Admin = () => {
     return (
       <div className="min-h-screen grid place-items-center bg-background p-4">
         <div className="card-surface border border-border/60 rounded-sm p-8 max-w-sm w-full space-y-5">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="SMMFLIX" className="h-10 w-10 object-contain" />
-            <div>
-              <div className="display text-xl font-black tracking-wider text-primary">ADMIN PANEL</div>
-              <div className="text-xs text-muted-foreground">SMMFLIX</div>
-            </div>
+          <div className="flex flex-col items-center gap-2">
+            <img src={wordmark} alt="SMMFLIX" className="h-12 object-contain drop-shadow-[0_0_18px_hsl(var(--primary)/0.45)]" />
+            <div className="display text-sm font-black tracking-[0.3em] text-primary">ADMIN PANEL</div>
           </div>
 
           <form
@@ -74,9 +71,9 @@ const Admin = () => {
       <header className="border-b border-border/40 sticky top-0 z-40 bg-background/80 backdrop-blur-xl">
         <div className="container flex items-center justify-between py-4">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="SMMFLIX" className="h-9 w-9 object-contain" />
-            <div className="display text-xl font-black tracking-wider">
-              <span className="text-primary">PRIME</span> SMM · ADMIN
+            <img src={wordmark} alt="SMMFLIX" className="h-8 object-contain drop-shadow-[0_0_12px_hsl(var(--primary)/0.45)]" />
+            <div className="display text-sm font-black tracking-[0.3em] text-primary">
+              ADMIN
             </div>
           </div>
           <Link to="/" className="text-sm text-muted-foreground hover:text-primary">
