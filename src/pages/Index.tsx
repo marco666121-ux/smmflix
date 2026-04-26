@@ -297,7 +297,7 @@ const Index = () => {
                 </button>
               </PopoverTrigger>
               <PopoverContent
-                className="w-[--radix-popover-trigger-width] p-0 bg-popover border-border"
+                className="w-[min(92vw,520px)] p-0 bg-popover border-border"
                 align="start"
                 sideOffset={6}
               >
