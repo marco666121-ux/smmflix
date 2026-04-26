@@ -290,7 +290,7 @@ const Index = () => {
                   aria-expanded={categoryOpen}
                   className="w-full flex items-center justify-between gap-2 bg-input border border-border rounded-sm px-3 h-10 text-sm hover:border-primary/60 transition-colors"
                 >
-                  <span className={cn("truncate text-left", !category && "text-muted-foreground")}>
+                  <span className={cn("text-left leading-snug", !category && "text-muted-foreground")}>
                     {category ? category.name : loading ? "Loading categories…" : "Select category"}
                   </span>
                   <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
