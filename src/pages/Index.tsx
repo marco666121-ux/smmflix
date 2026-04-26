@@ -222,7 +222,7 @@ const Index = () => {
               </PopoverContent>
             </Popover>
             <a
-              href={supportWhatsapp}
+              href={supportWa}
               target="_blank"
               rel="noreferrer"
               className="text-sm font-semibold text-foreground hover:text-primary transition-colors px-4 py-2 rounded border border-border hover:border-primary"
