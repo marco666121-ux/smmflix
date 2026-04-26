@@ -32,6 +32,7 @@ const Index = () => {
   const [link, setLink] = useState<string>("");
   const [search, setSearch] = useState<string>("");
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [categoryOpen, setCategoryOpen] = useState(false);
   const adminSettings = useAdminSettings();
   const { categories, loading, error } = useApiServices();
 
