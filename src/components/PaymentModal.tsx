@@ -20,7 +20,7 @@ export const PaymentModal = ({ open, onClose, amount, upiId, payeeName, onConfir
 
   const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(
     payeeName
-  )}&am=${amount.toFixed(2)}&cu=INR&tn=${encodeURIComponent("PRIME SMM Order")}`;
+  )}&am=${amount.toFixed(2)}&cu=INR&tn=${encodeURIComponent("SMMFLIX Order")}`;
 
   const handleSubmit = () => {
     if (utr.trim().length < 6) {

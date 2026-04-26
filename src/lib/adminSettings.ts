@@ -10,7 +10,7 @@ const KEY = "prime-smm-admin-settings";
 const DEFAULTS: AdminSettings = {
   qrPaymentEnabled: true,
   upiId: "yourname@upi",
-  payeeName: "PRIME SMM",
+  payeeName: "SMMFLIX",
 };
 
 export const getSettings = (): AdminSettings => {

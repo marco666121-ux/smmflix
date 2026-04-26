@@ -19,10 +19,10 @@ const Admin = () => {
       <div className="min-h-screen grid place-items-center bg-background p-4">
         <div className="card-surface border border-border/60 rounded-sm p-8 max-w-sm w-full space-y-5">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="PRIME SMM" className="h-10 w-10 object-contain" />
+            <img src={logo} alt="SMMFLIX" className="h-10 w-10 object-contain" />
             <div>
               <div className="display text-xl font-black tracking-wider text-primary">ADMIN PANEL</div>
-              <div className="text-xs text-muted-foreground">PRIME SMM</div>
+              <div className="text-xs text-muted-foreground">SMMFLIX</div>
             </div>
           </div>
 
@@ -74,7 +74,7 @@ const Admin = () => {
       <header className="border-b border-border/40 sticky top-0 z-40 bg-background/80 backdrop-blur-xl">
         <div className="container flex items-center justify-between py-4">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="PRIME SMM" className="h-9 w-9 object-contain" />
+            <img src={logo} alt="SMMFLIX" className="h-9 w-9 object-contain" />
             <div className="display text-xl font-black tracking-wider">
               <span className="text-primary">PRIME</span> SMM · ADMIN
             </div>
@@ -137,7 +137,7 @@ const Admin = () => {
             <Input
               value={settings.payeeName}
               onChange={(e) => update("payeeName", e.target.value)}
-              placeholder="PRIME SMM"
+              placeholder="SMMFLIX"
               className="bg-input border-border focus-visible:ring-primary rounded-sm"
             />
           </div>

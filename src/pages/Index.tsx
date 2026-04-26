@@ -119,7 +119,7 @@ const Index = () => {
       <header className="border-b border-border/40 backdrop-blur-xl sticky top-0 z-40 bg-background/80">
         <div className="container flex items-center justify-between py-4">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="PRIME SMM" className="h-10 w-10 object-contain drop-shadow-[0_0_12px_hsl(var(--primary)/0.5)]" />
+            <img src={logo} alt="SMMFLIX" className="h-10 w-10 object-contain drop-shadow-[0_0_12px_hsl(var(--primary)/0.5)]" />
             <div className="leading-none">
               <div className="font-black text-2xl tracking-tight display">
                 <span className="text-primary">PRIME</span> <span className="text-foreground">SMM</span>
@@ -341,7 +341,7 @@ const Index = () => {
       </section>
 
       <footer className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground uppercase tracking-widest">
-        © {new Date().getFullYear()} <span className="text-primary font-black">PRIME SMM</span> · Premium Services. Premium Results. <Link to="/admin" className="ml-2 hover:text-primary">Admin</Link>
+        © {new Date().getFullYear()} <span className="text-primary font-black">SMMFLIX</span> · Premium Services. Premium Results. <Link to="/admin" className="ml-2 hover:text-primary">Admin</Link>
       </footer>
 
       {service && (
