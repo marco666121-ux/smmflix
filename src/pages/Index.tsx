@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { categories, supportWhatsapp } from "@/data/services";
+import { categories as fallbackCategories, supportWhatsapp } from "@/data/services";
+import { useLiveServices } from "@/hooks/useLiveServices";
 import Guidelines from "@/components/Guidelines";
 import { PaymentModal } from "@/components/PaymentModal";
 import { useAdminSettings } from "@/lib/adminSettings";
@@ -27,10 +28,11 @@ const Index = () => {
   const [search, setSearch] = useState<string>("");
   const [paymentOpen, setPaymentOpen] = useState(false);
   const adminSettings = useAdminSettings();
+  const { categories, isLoading: servicesLoading, isLive } = useLiveServices();
 
   const category = useMemo(
     () => categories.find((c) => c.id === categoryId),
-    [categoryId]
+    [categories, categoryId]
   );
   const service = useMemo(
     () => category?.services.find((s) => s.id === serviceId),
@@ -43,7 +45,7 @@ const Index = () => {
       categories.flatMap((c) =>
         c.services.map((s) => ({ ...s, _categoryId: c.id, _categoryName: c.name }))
       ),
-    []
+    [categories]
   );
 
   const searchResults = useMemo(() => {
