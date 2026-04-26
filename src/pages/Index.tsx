@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { categories, supportWhatsapp } from "@/data/services";
+import { useApiServices, supportWhatsapp } from "@/hooks/useApiServices";
 import Guidelines from "@/components/Guidelines";
 import { PaymentModal } from "@/components/PaymentModal";
 import { useAdminSettings } from "@/lib/adminSettings";
@@ -26,6 +26,7 @@ const Index = () => {
   const [search, setSearch] = useState<string>("");
   const [paymentOpen, setPaymentOpen] = useState(false);
   const adminSettings = useAdminSettings();
+  const { categories, loading, error } = useApiServices();
 
   const category = useMemo(
     () => categories.find((c) => c.id === categoryId),
@@ -172,7 +173,12 @@ const Index = () => {
 
           {/* Search */}
           <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Search Services</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Search Services</Label>
+              <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">
+                {loading ? "Syncing…" : error ? <span className="text-destructive">Offline</span> : `${categories.reduce((n, c) => n + c.services.length, 0)} services live`}
+              </span>
+            </div>
             <div className="relative">
               <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
