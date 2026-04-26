@@ -323,7 +323,7 @@ const Index = () => {
                               categoryId === c.id ? "opacity-100 text-primary" : "opacity-0"
                             )}
                           />
-                          <span className="truncate">{c.name}</span>
+                          <span className="leading-snug whitespace-normal break-words">{c.name}</span>
                           <span className="ml-auto text-[10px] text-muted-foreground uppercase tracking-wider">
                             {c.services.length}
                           </span>
