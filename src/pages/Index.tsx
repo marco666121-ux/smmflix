@@ -173,7 +173,12 @@ const Index = () => {
 
           {/* Search */}
           <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Search Services</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Search Services</Label>
+              <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">
+                {loading ? "Syncing…" : error ? <span className="text-destructive">Offline</span> : `${categories.reduce((n, c) => n + c.services.length, 0)} services live`}
+              </span>
+            </div>
             <div className="relative">
               <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
