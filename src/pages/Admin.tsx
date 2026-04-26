@@ -137,14 +137,6 @@ const Admin = () => {
     update("banner", { ...settings.banner, ...patch });
   };
 
-  const allServices = useMemo(
-    () =>
-      categories.flatMap((c) =>
-        c.services.map((s) => ({ ...s, _categoryId: c.id, _categoryName: c.name }))
-      ),
-    [categories]
-  );
-
   // Stats
   const totalCategories = categories.length;
   const totalServices = allServices.length;
@@ -152,15 +144,6 @@ const Admin = () => {
     settings.hiddenCategoryIds.length + settings.hiddenServiceIds.length;
   const todayMs = Date.now() - 24 * 60 * 60 * 1000;
   const newToday = newServices.filter((n) => n.detectedAt >= todayMs).length;
-  const biggest = useMemo(() => {
-    let best: { name: string; count: number } | null = null;
-    for (const c of categories) {
-      if (!best || c.services.length > best.count) {
-        best = { name: c.name, count: c.services.length };
-      }
-    }
-    return best;
-  }, [categories]);
 
   const toggleCategory = (id: string) => {
     const set = new Set(settings.hiddenCategoryIds);
@@ -193,32 +176,6 @@ const Admin = () => {
     }
     update("featuredServiceIds", list);
   };
-
-  const visMatches = useMemo(() => {
-    const q = visSearch.trim().toLowerCase();
-    if (!q) return [];
-    return allServices
-      .filter(
-        (s) =>
-          s.id.toLowerCase().includes(q) ||
-          s.name.toLowerCase().includes(q) ||
-          s._categoryName.toLowerCase().includes(q)
-      )
-      .slice(0, 25);
-  }, [visSearch, allServices]);
-
-  const featMatches = useMemo(() => {
-    const q = featSearch.trim().toLowerCase();
-    if (!q) return [];
-    return allServices
-      .filter(
-        (s) =>
-          s.id.toLowerCase().includes(q) ||
-          s.name.toLowerCase().includes(q) ||
-          s._categoryName.toLowerCase().includes(q)
-      )
-      .slice(0, 25);
-  }, [featSearch, allServices]);
 
   const featuredItems = settings.featuredServiceIds
     .map((id) => allServices.find((s) => s.id === id))
