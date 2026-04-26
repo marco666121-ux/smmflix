@@ -197,7 +197,7 @@ const Index = () => {
               />
             </div>
             {search && (
-              <div className="rounded-sm border border-border divide-y divide-border overflow-hidden max-h-80 overflow-y-auto bg-card">
+              <div className="rounded-sm border border-border divide-y divide-border max-h-80 overflow-y-auto overscroll-contain bg-card [-webkit-overflow-scrolling:touch] scroll-smooth">
                 {searchResults.length === 0 && (
                   <div className="p-4 text-sm text-muted-foreground">No services found.</div>
                 )}
