@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* PRIME SMM — Netflix red + cinematic black */
+    /* SMMFLIX — Netflix red + cinematic black */
     --background: 0 0% 4%;
     --foreground: 0 0% 98%;
 
