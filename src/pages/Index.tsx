@@ -226,24 +226,58 @@ const Index = () => {
 
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Category</Label>
-            <Select
-              value={categoryId}
-              onValueChange={(v) => {
-                setCategoryId(v);
-                setServiceId("");
-              }}
-            >
-              <SelectTrigger className="bg-input border-border rounded-sm">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  role="combobox"
+                  aria-expanded={categoryOpen}
+                  className="w-full flex items-center justify-between gap-2 bg-input border border-border rounded-sm px-3 h-10 text-sm hover:border-primary/60 transition-colors"
+                >
+                  <span className={cn("truncate text-left", !category && "text-muted-foreground")}>
+                    {category ? category.name : loading ? "Loading categories…" : "Select category"}
+                  </span>
+                  <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-[--radix-popover-trigger-width] p-0 bg-popover border-border"
+                align="start"
+                sideOffset={6}
+              >
+                <Command>
+                  <CommandInput placeholder="Search categories…" className="h-10" />
+                  <CommandList className="max-h-[60vh] overscroll-contain">
+                    <CommandEmpty>No category found.</CommandEmpty>
+                    <CommandGroup>
+                      {categories.map((c) => (
+                        <CommandItem
+                          key={c.id}
+                          value={c.name}
+                          onSelect={() => {
+                            setCategoryId(c.id);
+                            setServiceId("");
+                            setCategoryOpen(false);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              categoryId === c.id ? "opacity-100 text-primary" : "opacity-0"
+                            )}
+                          />
+                          <span className="truncate">{c.name}</span>
+                          <span className="ml-auto text-[10px] text-muted-foreground uppercase tracking-wider">
+                            {c.services.length}
+                          </span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           {category && (
