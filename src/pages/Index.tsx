@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useApiServices, supportWhatsapp } from "@/hooks/useApiServices";
+import { useApiServices } from "@/hooks/useApiServices";
 import Guidelines from "@/components/Guidelines";
 import { PaymentModal } from "@/components/PaymentModal";
-import { useAdminSettings } from "@/lib/adminSettings";
+import { useAdminSettings, applyMarkup } from "@/lib/adminSettings";
 import wordmark from "@/assets/smmflix-wordmark.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { toast } from "@/hooks/use-toast";
-import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles } from "lucide-react";
+import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Index = () => {
@@ -34,8 +34,26 @@ const Index = () => {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const adminSettings = useAdminSettings();
-  const { categories, loading, error, newServices, clearNewServices } = useApiServices();
+  const { categories: rawCategories, loading, error, newServices, clearNewServices } = useApiServices();
   const [notifOpen, setNotifOpen] = useState(false);
+
+  const markup = adminSettings.priceMarkupPercent;
+  const supportWa = `https://wa.me/${adminSettings.supportWhatsapp || "918848490476"}`;
+
+  // Apply markup + hide filters to the source-of-truth list
+  const categories = useMemo(() => {
+    const hiddenCats = new Set(adminSettings.hiddenCategoryIds);
+    const hiddenSvcs = new Set(adminSettings.hiddenServiceIds);
+    return rawCategories
+      .filter((c) => !hiddenCats.has(c.id))
+      .map((c) => ({
+        ...c,
+        services: c.services
+          .filter((s) => !hiddenSvcs.has(s.id))
+          .map((s) => ({ ...s, rate: applyMarkup(s.rate, markup) })),
+      }))
+      .filter((c) => c.services.length > 0);
+  }, [rawCategories, adminSettings.hiddenCategoryIds, adminSettings.hiddenServiceIds, markup]);
 
   const category = useMemo(
     () => categories.find((c) => c.id === categoryId),
@@ -46,7 +64,7 @@ const Index = () => {
     [category, serviceId]
   );
 
-  // Global search across all services
+  // Global search across all (post-filter, post-markup) services
   const allServices = useMemo(
     () =>
       categories.flatMap((c) =>
@@ -54,6 +72,13 @@ const Index = () => {
       ),
     [categories]
   );
+
+  // Featured items (preserve admin order, filter out hidden / missing)
+  const featuredItems = useMemo(() => {
+    return adminSettings.featuredServiceIds
+      .map((id) => allServices.find((s) => s.id === id))
+      .filter(Boolean) as typeof allServices;
+  }, [adminSettings.featuredServiceIds, allServices]);
 
   const searchResults = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -91,7 +116,7 @@ const Index = () => {
     ];
     if (utr) lines.push(`🔹 UTR: ${utr}`, `🔹 Status: PAID ✅`);
     const message = encodeURIComponent(lines.join("\n"));
-    window.open(`https://wa.me/918848490476?text=${message}`, "_blank");
+    window.open(`${supportWa}?text=${message}`, "_blank");
   };
 
   const validateOrder = () => {
@@ -197,7 +222,7 @@ const Index = () => {
               </PopoverContent>
             </Popover>
             <a
-              href={supportWhatsapp}
+              href={supportWa}
               target="_blank"
               rel="noreferrer"
               className="text-sm font-semibold text-foreground hover:text-primary transition-colors px-4 py-2 rounded border border-border hover:border-primary"
@@ -207,6 +232,29 @@ const Index = () => {
           </div>
         </div>
       </header>
+
+      {/* Banner */}
+      {adminSettings.banner.enabled && adminSettings.banner.text.trim() && (
+        <div className="border-b border-primary/30 bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15">
+          <div className="container py-2.5 flex items-center gap-2 justify-center text-center">
+            <Megaphone className="h-4 w-4 text-primary shrink-0" />
+            {adminSettings.banner.link ? (
+              <a
+                href={adminSettings.banner.link}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm font-bold text-foreground hover:text-primary underline-offset-4 hover:underline break-words"
+              >
+                {adminSettings.banner.text}
+              </a>
+            ) : (
+              <span className="text-sm font-bold text-foreground break-words">
+                {adminSettings.banner.text}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Netflix-style hero */}
       <section className="relative overflow-hidden">
@@ -224,8 +272,46 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Featured row */}
+      {featuredItems.length > 0 && (
+        <section className="container pb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <Star className="h-5 w-5 text-primary fill-primary" />
+            <h2 className="display text-2xl font-black tracking-wider">FEATURED</h2>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {featuredItems.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => {
+                  setCategoryId(s._categoryId);
+                  setServiceId(s.id);
+                  setSearch("");
+                  document.getElementById("order-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                className="card-surface border border-border/60 rounded-sm p-4 text-left hover:border-primary/60 transition-all hover:scale-[1.02] group"
+              >
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-[10px] font-black text-primary uppercase tracking-widest">#{s.id}</span>
+                  <Star className="h-3.5 w-3.5 text-primary fill-primary" />
+                </div>
+                <div className="text-sm font-semibold leading-snug mb-2 line-clamp-2">{s.name}</div>
+                <div className="text-lg font-black text-foreground">
+                  ₹ {s.rate.toFixed(2)}
+                  <span className="text-[10px] text-muted-foreground font-normal ml-1">/ 1000</span>
+                </div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1 line-clamp-1">
+                  {s._categoryName}
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Order form */}
-      <section className="container pb-16">
+      <section id="order-form" className="container pb-16 scroll-mt-24">
         <form
           onSubmit={handleSubmit}
           className="card-surface border border-border/60 rounded-md p-6 sm:p-8 max-w-2xl mx-auto space-y-5 shadow-2xl"
