@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { categories, supportWhatsapp } from "@/data/services";
+import { supportWhatsapp } from "@/data/services";
+import { useLiveServices } from "@/hooks/useLiveServices";
 import Guidelines from "@/components/Guidelines";
 import { PaymentModal } from "@/components/PaymentModal";
 import { useAdminSettings } from "@/lib/adminSettings";
@@ -27,10 +28,11 @@ const Index = () => {
   const [search, setSearch] = useState<string>("");
   const [paymentOpen, setPaymentOpen] = useState(false);
   const adminSettings = useAdminSettings();
+  const { categories, isLoading: servicesLoading, isLive } = useLiveServices();
 
   const category = useMemo(
     () => categories.find((c) => c.id === categoryId),
-    [categoryId]
+    [categories, categoryId]
   );
   const service = useMemo(
     () => category?.services.find((s) => s.id === serviceId),
@@ -43,7 +45,7 @@ const Index = () => {
       categories.flatMap((c) =>
         c.services.map((s) => ({ ...s, _categoryId: c.id, _categoryName: c.name }))
       ),
-    []
+    [categories]
   );
 
   const searchResults = useMemo(() => {
@@ -132,14 +134,33 @@ const Index = () => {
               </div>
             </div>
           </Link>
-          <a
-            href={supportWhatsapp}
-            target="_blank"
-            rel="noreferrer"
-            className="text-sm font-semibold text-foreground hover:text-primary transition-colors px-4 py-2 rounded border border-border hover:border-primary"
-          >
-            Support
-          </a>
+          <div className="flex items-center gap-3">
+            <span
+              className={`hidden sm:inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border ${
+                servicesLoading
+                  ? "border-muted-foreground/30 text-muted-foreground"
+                  : isLive
+                  ? "border-primary/40 text-primary"
+                  : "border-border text-muted-foreground"
+              }`}
+              title={isLive ? "Synced live with provider" : servicesLoading ? "Syncing…" : "Using cached list"}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  servicesLoading ? "bg-muted-foreground animate-pulse" : isLive ? "bg-primary animate-pulse" : "bg-muted-foreground"
+                }`}
+              />
+              {servicesLoading ? "Syncing" : isLive ? "Live" : "Cached"}
+            </span>
+            <a
+              href={supportWhatsapp}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm font-semibold text-foreground hover:text-primary transition-colors px-4 py-2 rounded border border-border hover:border-primary"
+            >
+              Support
+            </a>
+          </div>
         </div>
       </header>
 
