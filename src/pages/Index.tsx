@@ -116,7 +116,7 @@ const Index = () => {
     ];
     if (utr) lines.push(`🔹 UTR: ${utr}`, `🔹 Status: PAID ✅`);
     const message = encodeURIComponent(lines.join("\n"));
-    window.open(`https://wa.me/918848490476?text=${message}`, "_blank");
+    window.open(`${supportWa}?text=${message}`, "_blank");
   };
 
   const validateOrder = () => {
