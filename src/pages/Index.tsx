@@ -293,7 +293,7 @@ const Index = () => {
                   <span className={cn("text-left leading-snug", !category && "text-muted-foreground")}>
                     {category ? category.name : loading ? "Loading categories…" : "Select category"}
                   </span>
-                  <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
+                  <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 mt-0.5" />
                 </button>
               </PopoverTrigger>
               <PopoverContent
