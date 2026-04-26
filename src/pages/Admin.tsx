@@ -37,6 +37,50 @@ const Admin = () => {
   const [visSearch, setVisSearch] = useState("");
   const [featSearch, setFeatSearch] = useState("");
 
+  const allServices = useMemo(
+    () =>
+      categories.flatMap((c) =>
+        c.services.map((s) => ({ ...s, _categoryId: c.id, _categoryName: c.name }))
+      ),
+    [categories]
+  );
+
+  const biggest = useMemo(() => {
+    let best: { name: string; count: number } | null = null;
+    for (const c of categories) {
+      if (!best || c.services.length > best.count) {
+        best = { name: c.name, count: c.services.length };
+      }
+    }
+    return best;
+  }, [categories]);
+
+  const visMatches = useMemo(() => {
+    const q = visSearch.trim().toLowerCase();
+    if (!q) return [];
+    return allServices
+      .filter(
+        (s) =>
+          s.id.toLowerCase().includes(q) ||
+          s.name.toLowerCase().includes(q) ||
+          s._categoryName.toLowerCase().includes(q)
+      )
+      .slice(0, 25);
+  }, [visSearch, allServices]);
+
+  const featMatches = useMemo(() => {
+    const q = featSearch.trim().toLowerCase();
+    if (!q) return [];
+    return allServices
+      .filter(
+        (s) =>
+          s.id.toLowerCase().includes(q) ||
+          s.name.toLowerCase().includes(q) ||
+          s._categoryName.toLowerCase().includes(q)
+      )
+      .slice(0, 25);
+  }, [featSearch, allServices]);
+
   if (!authed) {
     return (
       <div className="min-h-screen grid place-items-center bg-background p-4">
