@@ -9,14 +9,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { toast } from "@/hooks/use-toast";
-import { Zap, ShieldCheck, Rocket, Search } from "lucide-react";
+import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const Index = () => {
   const [categoryId, setCategoryId] = useState<string>("");
@@ -25,6 +32,7 @@ const Index = () => {
   const [link, setLink] = useState<string>("");
   const [search, setSearch] = useState<string>("");
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [categoryOpen, setCategoryOpen] = useState(false);
   const adminSettings = useAdminSettings();
   const { categories, loading, error } = useApiServices();
 
@@ -189,7 +197,7 @@ const Index = () => {
               />
             </div>
             {search && (
-              <div className="rounded-sm border border-border divide-y divide-border overflow-hidden max-h-80 overflow-y-auto bg-card">
+              <div className="rounded-sm border border-border divide-y divide-border max-h-80 overflow-y-auto overscroll-contain bg-card [-webkit-overflow-scrolling:touch] scroll-smooth">
                 {searchResults.length === 0 && (
                   <div className="p-4 text-sm text-muted-foreground">No services found.</div>
                 )}
@@ -218,30 +226,64 @@ const Index = () => {
 
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Category</Label>
-            <Select
-              value={categoryId}
-              onValueChange={(v) => {
-                setCategoryId(v);
-                setServiceId("");
-              }}
-            >
-              <SelectTrigger className="bg-input border-border rounded-sm">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  role="combobox"
+                  aria-expanded={categoryOpen}
+                  className="w-full flex items-center justify-between gap-2 bg-input border border-border rounded-sm px-3 h-10 text-sm hover:border-primary/60 transition-colors"
+                >
+                  <span className={cn("truncate text-left", !category && "text-muted-foreground")}>
+                    {category ? category.name : loading ? "Loading categories…" : "Select category"}
+                  </span>
+                  <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-[--radix-popover-trigger-width] p-0 bg-popover border-border"
+                align="start"
+                sideOffset={6}
+              >
+                <Command>
+                  <CommandInput placeholder="Search categories…" className="h-10" />
+                  <CommandList className="max-h-[60vh] overscroll-contain">
+                    <CommandEmpty>No category found.</CommandEmpty>
+                    <CommandGroup>
+                      {categories.map((c) => (
+                        <CommandItem
+                          key={c.id}
+                          value={c.name}
+                          onSelect={() => {
+                            setCategoryId(c.id);
+                            setServiceId("");
+                            setCategoryOpen(false);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              categoryId === c.id ? "opacity-100 text-primary" : "opacity-0"
+                            )}
+                          />
+                          <span className="truncate">{c.name}</span>
+                          <span className="ml-auto text-[10px] text-muted-foreground uppercase tracking-wider">
+                            {c.services.length}
+                          </span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           {category && (
             <div className="space-y-2">
               <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Service</Label>
-              <div className="rounded-sm border border-border divide-y divide-border overflow-hidden bg-card">
+              <div className="rounded-sm border border-border divide-y divide-border overflow-y-auto overscroll-contain bg-card max-h-[60vh] [-webkit-overflow-scrolling:touch] scroll-smooth">
                 {category.services.map((s) => {
                   const selected = s.id === serviceId;
                   return (
