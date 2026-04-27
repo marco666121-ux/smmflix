@@ -27,6 +27,9 @@ import {
   Percent,
   CreditCard,
   BarChart3,
+  FileText,
+  Copy,
+  Check,
 } from "lucide-react";
 
 const Admin = () => {
