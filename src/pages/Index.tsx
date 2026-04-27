@@ -50,7 +50,8 @@ const Index = () => {
         ...c,
         services: c.services
           .filter((s) => !hiddenSvcs.has(s.id))
-          .map((s) => ({ ...s, rate: applyMarkup(s.rate, markup) })),
+          .map((s) => ({ ...s, rate: applyMarkup(s.rate, markup) }))
+          .sort((a, b) => a.rate - b.rate),
       }))
       .filter((c) => c.services.length > 0);
   }, [rawCategories, adminSettings.hiddenCategoryIds, adminSettings.hiddenServiceIds, markup]);
