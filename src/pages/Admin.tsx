@@ -107,7 +107,7 @@ const Admin = () => {
 
   const fmtText = useMemo(() => {
     if (!fmtSelected) return "";
-    const TIERS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 5000, 10000];
+    const TIERS = settings.formatterTiers;
     const rate = applyMarkup(fmtSelected.rate, settings.priceMarkupPercent);
     // API rate is per 1000 units.
     const lines: string[] = [];
@@ -126,7 +126,7 @@ const Admin = () => {
       lines.push(`${qty} ${unit} - ₹ ${price.toFixed(2)}`);
     }
     return lines.join("\n");
-  }, [fmtSelected, settings.priceMarkupPercent]);
+  }, [fmtSelected, settings.priceMarkupPercent, settings.formatterTiers]);
 
   const copyFmt = async () => {
     try {
