@@ -686,4 +686,27 @@ const Stat = ({ label, value }: { label: string; value: number | string }) => (
   </div>
 );
 
+// Pick a sensible unit word from the service name (followers / likes / views ...).
+function guessUnit(name: string): string {
+  const n = name.toLowerCase();
+  const map: Array<[RegExp, string]> = [
+    [/follower/, "followers"],
+    [/subscriber/, "subscribers"],
+    [/member/, "members"],
+    [/like/, "likes"],
+    [/reaction/, "reactions"],
+    [/comment/, "comments"],
+    [/share/, "shares"],
+    [/save/, "saves"],
+    [/repost/, "reposts"],
+    [/vote/, "votes"],
+    [/review/, "reviews"],
+    [/impression/, "impressions"],
+    [/reach/, "reach"],
+    [/view/, "views"],
+  ];
+  for (const [re, word] of map) if (re.test(n)) return word;
+  return "units";
+}
+
 export default Admin;
