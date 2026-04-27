@@ -287,6 +287,52 @@ const Admin = () => {
           )}
         </section>
 
+        {/* Cheapest Services */}
+        <section className="card-surface border border-border/60 rounded-sm p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <TrendingDown className="h-5 w-5 text-primary" />
+            <h2 className="display text-xl font-black tracking-wider text-primary">CHEAPEST SERVICES</h2>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Top 15 lowest-priced services. <span className="text-foreground font-bold">Your rate</span> includes the {settings.priceMarkupPercent}% markup; <span className="text-foreground font-bold">Provider</span> is the raw API cost.
+          </p>
+          <div className="border border-border rounded-sm divide-y divide-border bg-card max-h-96 overflow-y-auto overscroll-contain">
+            {cheapestServices.length === 0 && (
+              <div className="p-4 text-sm text-muted-foreground">Loading…</div>
+            )}
+            {cheapestServices.map((s, i) => {
+              const yourRate = applyMarkup(s.rate, settings.priceMarkupPercent);
+              const margin = yourRate - s.rate;
+              return (
+                <div key={s.id} className="p-3 flex items-start gap-3">
+                  <div className="text-[10px] font-black text-primary uppercase tracking-widest w-6 shrink-0 pt-0.5">
+                    #{i + 1}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] font-black text-primary uppercase tracking-widest">#{s.id}</div>
+                    <div className="text-sm font-semibold leading-snug break-words">{s.name}</div>
+                    <div className="text-[11px] text-muted-foreground break-words mb-1.5">{s._categoryName}</div>
+                    <div className="grid grid-cols-3 gap-2 text-[11px]">
+                      <div className="border border-border bg-muted/30 rounded-sm px-2 py-1">
+                        <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Provider</div>
+                        <div className="text-foreground font-black">₹ {s.rate.toFixed(2)}</div>
+                      </div>
+                      <div className="border border-primary/40 bg-primary/10 rounded-sm px-2 py-1">
+                        <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Your Rate</div>
+                        <div className="text-primary font-black">₹ {yourRate.toFixed(2)}</div>
+                      </div>
+                      <div className="border border-border bg-muted/30 rounded-sm px-2 py-1">
+                        <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Margin</div>
+                        <div className="text-foreground font-black">₹ {margin.toFixed(2)}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         {/* Payment & Contact */}
         <section className="card-surface border border-border/60 rounded-sm p-6 space-y-5">
           <div className="flex items-center gap-2">
