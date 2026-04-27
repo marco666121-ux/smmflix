@@ -63,6 +63,14 @@ const Admin = () => {
     return best;
   }, [categories]);
 
+  // Top cheapest services (by raw provider rate, ascending)
+  const cheapestServices = useMemo(() => {
+    return [...allServices]
+      .filter((s) => Number.isFinite(s.rate) && s.rate > 0)
+      .sort((a, b) => a.rate - b.rate)
+      .slice(0, 15);
+  }, [allServices]);
+
   const visMatches = useMemo(() => {
     const q = visSearch.trim().toLowerCase();
     if (!q) return [];
