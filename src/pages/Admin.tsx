@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import {
   ADMIN_PASSWORD,
+  DEFAULT_FORMATTER_TIERS,
   FEATURED_MAX,
   applyMarkup,
   getSettings,
