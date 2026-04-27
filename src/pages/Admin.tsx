@@ -606,6 +606,35 @@ const Admin = () => {
             Search a service, click it, and get a ready-to-share message with tiered pricing using your current markup.
           </p>
 
+          <Field label="Quantity tiers (comma-separated)">
+            <Input
+              value={tiersInput}
+              onChange={(e) => {
+                setTiersInput(e.target.value);
+                const parsed = e.target.value
+                  .split(/[,\s]+/)
+                  .map((t) => Number(t.trim()))
+                  .filter((n) => Number.isFinite(n) && n > 0);
+                if (parsed.length) update("formatterTiers", parsed);
+              }}
+              placeholder="100, 200, 500, 1000, 5000"
+              className="bg-input border-border focus-visible:ring-primary rounded-sm"
+            />
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+              <span>Tiers outside a service's min/max are skipped automatically.</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setTiersInput(DEFAULT_FORMATTER_TIERS.join(", "));
+                  update("formatterTiers", DEFAULT_FORMATTER_TIERS);
+                }}
+                className="text-primary hover:underline font-bold uppercase tracking-wider"
+              >
+                Reset
+              </button>
+            </div>
+          </Field>
+
           <div className="relative">
             <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
