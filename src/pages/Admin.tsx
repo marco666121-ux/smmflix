@@ -43,6 +43,7 @@ const Admin = () => {
   const [fmtSearch, setFmtSearch] = useState("");
   const [fmtSelectedId, setFmtSelectedId] = useState<string | null>(null);
   const [fmtCopied, setFmtCopied] = useState(false);
+  const [tiersInput, setTiersInput] = useState(() => getSettings().formatterTiers.join(", "));
 
   const allServices = useMemo(
     () =>
