@@ -84,8 +84,6 @@ const Index = () => {
   const searchResults = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return [];
-    // Sort by rate keywords
-    const sortByRate = q.includes("cheap") || q.includes("premium");
     const filtered = allServices.filter((s) => {
       if (q === "cheap" || q === "premium") return true;
       return (
@@ -95,8 +93,9 @@ const Index = () => {
         String(s.rate).includes(q)
       );
     });
-    if (q.includes("cheap")) filtered.sort((a, b) => a.rate - b.rate);
-    else if (q.includes("premium")) filtered.sort((a, b) => b.rate - a.rate);
+    // Default: cheap → expensive. "premium" reverses to expensive → cheap.
+    if (q.includes("premium")) filtered.sort((a, b) => b.rate - a.rate);
+    else filtered.sort((a, b) => a.rate - b.rate);
     return filtered.slice(0, 50);
   }, [search, allServices]);
 
