@@ -14,9 +14,14 @@ export type AdminSettings = {
   hiddenCategoryIds: string[]; // category ids from useApiServices
   hiddenServiceIds: string[]; // service ids
   featuredServiceIds: string[]; // up to 6 ids, displayed in order
+  formatterTiers: number[]; // quantity tiers used by the service formatter
 };
 
 const KEY = "smmflix-admin-settings-v2";
+
+export const DEFAULT_FORMATTER_TIERS = [
+  100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 5000, 10000,
+];
 
 const DEFAULTS: AdminSettings = {
   qrPaymentEnabled: true,
@@ -32,6 +37,7 @@ const DEFAULTS: AdminSettings = {
   hiddenCategoryIds: [],
   hiddenServiceIds: [],
   featuredServiceIds: [],
+  formatterTiers: DEFAULT_FORMATTER_TIERS,
 };
 
 export const FEATURED_MAX = 6;
