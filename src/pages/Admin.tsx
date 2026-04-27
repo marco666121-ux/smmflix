@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import {
   ADMIN_PASSWORD,
+  DEFAULT_FORMATTER_TIERS,
   FEATURED_MAX,
   applyMarkup,
   getSettings,
@@ -42,6 +43,7 @@ const Admin = () => {
   const [fmtSearch, setFmtSearch] = useState("");
   const [fmtSelectedId, setFmtSelectedId] = useState<string | null>(null);
   const [fmtCopied, setFmtCopied] = useState(false);
+  const [tiersInput, setTiersInput] = useState(() => getSettings().formatterTiers.join(", "));
 
   const allServices = useMemo(
     () =>
@@ -107,7 +109,7 @@ const Admin = () => {
 
   const fmtText = useMemo(() => {
     if (!fmtSelected) return "";
-    const TIERS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 5000, 10000];
+    const TIERS = settings.formatterTiers;
     const rate = applyMarkup(fmtSelected.rate, settings.priceMarkupPercent);
     // API rate is per 1000 units.
     const lines: string[] = [];
@@ -126,7 +128,7 @@ const Admin = () => {
       lines.push(`${qty} ${unit} - ₹ ${price.toFixed(2)}`);
     }
     return lines.join("\n");
-  }, [fmtSelected, settings.priceMarkupPercent]);
+  }, [fmtSelected, settings.priceMarkupPercent, settings.formatterTiers]);
 
   const copyFmt = async () => {
     try {
@@ -603,6 +605,35 @@ const Admin = () => {
           <p className="text-sm text-muted-foreground">
             Search a service, click it, and get a ready-to-share message with tiered pricing using your current markup.
           </p>
+
+          <Field label="Quantity tiers (comma-separated)">
+            <Input
+              value={tiersInput}
+              onChange={(e) => {
+                setTiersInput(e.target.value);
+                const parsed = e.target.value
+                  .split(/[,\s]+/)
+                  .map((t) => Number(t.trim()))
+                  .filter((n) => Number.isFinite(n) && n > 0);
+                if (parsed.length) update("formatterTiers", parsed);
+              }}
+              placeholder="100, 200, 500, 1000, 5000"
+              className="bg-input border-border focus-visible:ring-primary rounded-sm"
+            />
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+              <span>Tiers outside a service's min/max are skipped automatically.</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setTiersInput(DEFAULT_FORMATTER_TIERS.join(", "));
+                  update("formatterTiers", DEFAULT_FORMATTER_TIERS);
+                }}
+                className="text-primary hover:underline font-bold uppercase tracking-wider"
+              >
+                Reset
+              </button>
+            </div>
+          </Field>
 
           <div className="relative">
             <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
