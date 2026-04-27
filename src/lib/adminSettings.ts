@@ -49,6 +49,10 @@ const merge = (raw: any): AdminSettings => ({
   hiddenCategoryIds: Array.isArray(raw?.hiddenCategoryIds) ? raw.hiddenCategoryIds : [],
   hiddenServiceIds: Array.isArray(raw?.hiddenServiceIds) ? raw.hiddenServiceIds : [],
   featuredServiceIds: Array.isArray(raw?.featuredServiceIds) ? raw.featuredServiceIds : [],
+  formatterTiers:
+    Array.isArray(raw?.formatterTiers) && raw.formatterTiers.length
+      ? raw.formatterTiers.filter((n: any) => Number.isFinite(n) && n > 0)
+      : DEFAULT_FORMATTER_TIERS,
 });
 
 export const getSettings = (): AdminSettings => {
