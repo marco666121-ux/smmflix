@@ -39,6 +39,9 @@ const Admin = () => {
   const { categories, newServices } = useApiServices();
   const [visSearch, setVisSearch] = useState("");
   const [featSearch, setFeatSearch] = useState("");
+  const [fmtSearch, setFmtSearch] = useState("");
+  const [fmtSelectedId, setFmtSelectedId] = useState<string | null>(null);
+  const [fmtCopied, setFmtCopied] = useState(false);
 
   const allServices = useMemo(
     () =>
