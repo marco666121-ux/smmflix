@@ -87,6 +87,58 @@ const Admin = () => {
       .slice(0, 25);
   }, [featSearch, allServices]);
 
+  const fmtMatches = useMemo(() => {
+    const q = fmtSearch.trim().toLowerCase();
+    if (!q) return [];
+    return allServices
+      .filter(
+        (s) =>
+          s.id.toLowerCase().includes(q) ||
+          s.name.toLowerCase().includes(q) ||
+          s._categoryName.toLowerCase().includes(q)
+      )
+      .slice(0, 25);
+  }, [fmtSearch, allServices]);
+
+  const fmtSelected = useMemo(
+    () => (fmtSelectedId ? allServices.find((s) => s.id === fmtSelectedId) ?? null : null),
+    [fmtSelectedId, allServices]
+  );
+
+  const fmtText = useMemo(() => {
+    if (!fmtSelected) return "";
+    const TIERS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 5000, 10000];
+    const rate = applyMarkup(fmtSelected.rate, settings.priceMarkupPercent);
+    // API rate is per 1000 units.
+    const lines: string[] = [];
+    lines.push(`SERVICE ID : ${fmtSelected.id}`);
+    lines.push("");
+    lines.push(fmtSelected.name);
+    if (fmtSelected.description && fmtSelected.description.trim()) {
+      lines.push("");
+      lines.push(fmtSelected.description.trim());
+    }
+    lines.push("");
+    const unit = guessUnit(fmtSelected.name);
+    for (const qty of TIERS) {
+      if (qty < fmtSelected.min || qty > fmtSelected.max) continue;
+      const price = (rate * qty) / 1000;
+      lines.push(`${qty} ${unit} - ₹ ${price.toFixed(2)}`);
+    }
+    return lines.join("\n");
+  }, [fmtSelected, settings.priceMarkupPercent]);
+
+  const copyFmt = async () => {
+    try {
+      await navigator.clipboard.writeText(fmtText);
+      setFmtCopied(true);
+      setTimeout(() => setFmtCopied(false), 1500);
+      toast({ title: "Copied to clipboard" });
+    } catch {
+      toast({ title: "Copy failed" });
+    }
+  };
+
   if (!authed) {
     return (
       <div className="min-h-screen grid place-items-center bg-background p-4">
