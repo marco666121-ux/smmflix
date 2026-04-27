@@ -27,6 +27,9 @@ import {
   Percent,
   CreditCard,
   BarChart3,
+  FileText,
+  Copy,
+  Check,
 } from "lucide-react";
 
 const Admin = () => {
@@ -36,6 +39,9 @@ const Admin = () => {
   const { categories, newServices } = useApiServices();
   const [visSearch, setVisSearch] = useState("");
   const [featSearch, setFeatSearch] = useState("");
+  const [fmtSearch, setFmtSearch] = useState("");
+  const [fmtSelectedId, setFmtSelectedId] = useState<string | null>(null);
+  const [fmtCopied, setFmtCopied] = useState(false);
 
   const allServices = useMemo(
     () =>
@@ -80,6 +86,58 @@ const Admin = () => {
       )
       .slice(0, 25);
   }, [featSearch, allServices]);
+
+  const fmtMatches = useMemo(() => {
+    const q = fmtSearch.trim().toLowerCase();
+    if (!q) return [];
+    return allServices
+      .filter(
+        (s) =>
+          s.id.toLowerCase().includes(q) ||
+          s.name.toLowerCase().includes(q) ||
+          s._categoryName.toLowerCase().includes(q)
+      )
+      .slice(0, 25);
+  }, [fmtSearch, allServices]);
+
+  const fmtSelected = useMemo(
+    () => (fmtSelectedId ? allServices.find((s) => s.id === fmtSelectedId) ?? null : null),
+    [fmtSelectedId, allServices]
+  );
+
+  const fmtText = useMemo(() => {
+    if (!fmtSelected) return "";
+    const TIERS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 5000, 10000];
+    const rate = applyMarkup(fmtSelected.rate, settings.priceMarkupPercent);
+    // API rate is per 1000 units.
+    const lines: string[] = [];
+    lines.push(`SERVICE ID : ${fmtSelected.id}`);
+    lines.push("");
+    lines.push(fmtSelected.name);
+    if (fmtSelected.description && fmtSelected.description.trim()) {
+      lines.push("");
+      lines.push(fmtSelected.description.trim());
+    }
+    lines.push("");
+    const unit = guessUnit(fmtSelected.name);
+    for (const qty of TIERS) {
+      if (qty < fmtSelected.min || qty > fmtSelected.max) continue;
+      const price = (rate * qty) / 1000;
+      lines.push(`${qty} ${unit} - ₹ ${price.toFixed(2)}`);
+    }
+    return lines.join("\n");
+  }, [fmtSelected, settings.priceMarkupPercent]);
+
+  const copyFmt = async () => {
+    try {
+      await navigator.clipboard.writeText(fmtText);
+      setFmtCopied(true);
+      setTimeout(() => setFmtCopied(false), 1500);
+      toast({ title: "Copied to clipboard" });
+    } catch {
+      toast({ title: "Copy failed" });
+    }
+  };
 
   if (!authed) {
     return (
@@ -536,6 +594,76 @@ const Admin = () => {
           </div>
         </section>
 
+        {/* Service Formatter */}
+        <section className="card-surface border border-border/60 rounded-sm p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            <h2 className="display text-xl font-black tracking-wider text-primary">SERVICE FORMATTER</h2>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Search a service, click it, and get a ready-to-share message with tiered pricing using your current markup.
+          </p>
+
+          <div className="relative">
+            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={fmtSearch}
+              onChange={(e) => setFmtSearch(e.target.value)}
+              placeholder="Search by ID, name, or category"
+              className="pl-9 bg-input border-border focus-visible:ring-primary rounded-sm"
+            />
+          </div>
+
+          {fmtSearch && (
+            <div className="max-h-72 overflow-y-auto overscroll-contain border border-border rounded-sm divide-y divide-border bg-card">
+              {fmtMatches.length === 0 && (
+                <div className="p-3 text-sm text-muted-foreground">No matches.</div>
+              )}
+              {fmtMatches.map((s) => {
+                const active = fmtSelectedId === s.id;
+                return (
+                  <button
+                    type="button"
+                    key={s.id}
+                    onClick={() => setFmtSelectedId(s.id)}
+                    className={`w-full flex items-center justify-between gap-3 p-3 text-left transition-colors ${
+                      active ? "bg-primary/10" : "hover:bg-primary/5"
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-black text-primary uppercase tracking-widest">#{s.id}</div>
+                      <div className="text-sm font-semibold leading-snug break-words">{s.name}</div>
+                      <div className="text-[11px] text-muted-foreground break-words">{s._categoryName}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {fmtSelected && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">
+                  Formatted message
+                </Label>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={copyFmt}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold uppercase tracking-widest rounded-sm h-8 gap-1"
+                >
+                  {fmtCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  {fmtCopied ? "Copied" : "Copy"}
+                </Button>
+              </div>
+              <pre className="bg-input border border-border rounded-sm p-4 text-sm whitespace-pre-wrap break-words font-mono leading-relaxed max-h-96 overflow-y-auto">
+{fmtText}
+              </pre>
+            </div>
+          )}
+        </section>
+
         <p className="text-xs text-primary text-center">✓ All changes save automatically.</p>
       </main>
     </div>
@@ -557,5 +685,28 @@ const Stat = ({ label, value }: { label: string; value: number | string }) => (
     <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mt-1">{label}</div>
   </div>
 );
+
+// Pick a sensible unit word from the service name (followers / likes / views ...).
+function guessUnit(name: string): string {
+  const n = name.toLowerCase();
+  const map: Array<[RegExp, string]> = [
+    [/follower/, "followers"],
+    [/subscriber/, "subscribers"],
+    [/member/, "members"],
+    [/like/, "likes"],
+    [/reaction/, "reactions"],
+    [/comment/, "comments"],
+    [/share/, "shares"],
+    [/save/, "saves"],
+    [/repost/, "reposts"],
+    [/vote/, "votes"],
+    [/review/, "reviews"],
+    [/impression/, "impressions"],
+    [/reach/, "reach"],
+    [/view/, "views"],
+  ];
+  for (const [re, word] of map) if (re.test(n)) return word;
+  return "units";
+}
 
 export default Admin;
