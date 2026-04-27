@@ -49,6 +49,117 @@ const toPlain = (str: string): string => {
 
 const sortKey = (str: string) => toPlain(str).toLowerCase().trim();
 
+// Manual category order requested by admin. Match is done on the normalized
+// (plain-ASCII, lowercased, trimmed) name so stylized unicode variants in the
+// API still line up with these entries.
+const MANUAL_CATEGORY_ORDER: string[] = [
+  "Winter Sale 🥶",
+  "IG Followers 100% Old Account+ 15 Post ( Non - Drop ) ( Updated on 25/1/2026 )",
+  "IG Followers Old Accounts Emergency Update ( One Click Done )",
+  "Instagram Followers ( Ultra Cheap )",
+  "Instagram Followers ( Almost No Drop ) One Click Done",
+  "Instagram Followers ( Available Only On S S )",
+  "Instagram Followers ( Big Base Profiles Accepted )",
+  "Instagram Followers ( ULTRA CHEAP ) Big base profiles Accepted",
+  "Instagram Followers 100% Indian 🇮🇳",
+  "Instagram Followers 100% Old Accounts",
+  "Instagram Followers 100% Old Accounts ( No/Low Drop )",
+  "Instagram Followers 100% Real Accounts ( One Click Done )",
+  "Instagram Followers 100% Real App Data",
+  "Instagram Followers Cheapest ( Cheapest )",
+  "Instagram Followers Old Accounts ( One Click Done )",
+  "Instagram Followers Updated",
+  "Instagram Likes ( 100% Indian ) 🇮🇳",
+  "Instagram Likes ( 100% Indian 🇮🇳 )",
+  "Instagram Likes ( Cheapest )",
+  "Instagram Likes [ One Click Done )",
+  "Instagram Likes 100% Indian 🇮🇳 ( Non -Drop )",
+  "Instagram Likes 100% Indian 🇮🇳 ( Power Likes )",
+  "Instagram Likes 100% Indian Quality 💞",
+  "Instagram Likes Old Accounts",
+  "IG Reels Views [ Cheap ]",
+  "Instagram Reels Views ( Updated )",
+  "Instagram [ DM Services ]",
+  "Instagram 100% Indian ( One Click Done ) Updated",
+  "Instagram Comments ( INDIAN 🇮🇳 )",
+  "Instagram Comments ( New )",
+  "Instagram Comments [ Non~Drop ]",
+  "Instagram live Video views [ NoN~Drop ]",
+  "Instagram Poll Votes [ Working ]",
+  "Instagram Post Save [ Indian 🇮🇳 ]",
+  "Instagram Post Shares [ Indian 🇮🇳 ]",
+  "Instagram Post/ Photos Views",
+  "Instagram Reach + Impression/Post Shares",
+  "Instagram Repost Services ( Cheapest )",
+  "YouTube Adwords Views ( ULTRA CHEAP )",
+  "YouTube Comments ( New )",
+  "YouTube Comments Likes ( One Click Done )",
+  "YouTube Comments Reply Likes ( One Click Done )",
+  "YouTube Likes ( Non -Drop )",
+  "YouTube Likes ( Non-Drop )",
+  "YouTube Likes ( One Click Done )",
+  "YouTube Live Chat Comments Custom (( One Click Done ))",
+  "YouTube Live Stream Likes (( 0% Drop Provider ))",
+  "YouTube Live stream Views",
+  "YouTube Live Stream Views ( Cheapest In The World )",
+  "YouTube Live Stream Views + Likes [ 100% Concurrent ]",
+  "YouTube Services ( ULTRA CHEAP )",
+  "YouTube Social Ads Views [ Instant ]",
+  "YouTube Subscribers ( Working Update )",
+  "YouTube Views ( One Click Done)",
+  "YouTube Views ( Adwords ) New 🆕",
+  "YouTube Views ( Non - Drop )",
+  "YouTube Views Fast ( Non -Drop )",
+  "YouTube Views Native Ads ( 100% Indian 🇮🇳 )",
+  "YouTube Views Native Ads ( One Click Done SERVER )",
+  "Cheapest In The World",
+  "Facebook Comments ( New )",
+  "Facebook Comments ( Ultra Fast )",
+  "Facebook Comments ( ULTRA FAST )",
+  "Facebook Followers ( One Click Done )",
+  "Facebook Followers ( Ultra Cheap )",
+  "Facebook Followers New [ Non- Drop ]",
+  "Facebook Group Members ( New )",
+  "Facebook Group Members ( ULTRA FAST )",
+  "Facebook Group Members [ Fast ]",
+  "Facebook Group Members [ NoN~Drop ]",
+  "Facebook Live Stream Viewers (100% Concurrent )",
+  "Facebook Livestream ( Ultra Fast )",
+  "Facebook Page Like + Followers [ S-3 ] Ultra Fast",
+  "Facebook Page Likes Followers",
+  "Facebook Page Likes + Followers Ultra Fast ( S -4 )",
+  "Facebook Page Likes + Followers ( Updated )",
+  "Facebook Page Likes+ Followers ( S-1 )",
+  "Facebook Page Likes+ Followers ( S-2 ) ULTRA FAST",
+  "Facebook Post Likes ( New )",
+  "Facebook Post Likes ( Non -Drop )",
+  "Facebook Post Likes ( One Click Done )",
+  "Facebook Post Likes [ ULTRA FAST ]",
+  "Facebook Post Reactions ( Cheapest )",
+  "Facebook Post Reactions ( S -1 )",
+  "Facebook Post Reactions ( ULTRA FAST )",
+  "Facebook Post Reactions [ Fast ]",
+  "Facebook Post Reactions [ ULTRA FAST ]",
+  "Facebook Post Reactions [ Updated ]",
+  "Facebook Post Reactions [ Working Update ]",
+  "Facebook Post Reactions Cheapest 🚀",
+  "Facebook Post Share ( Ultra Fast )",
+  "Facebook Post Shares ( ULTRA FAST )",
+  "Facebook Reels/ Video Views [ Non-Drop ]",
+  "Facebook Services [ One click Done ]",
+  "Facebook Services [ One Click Done ] Indian Mix 🇮🇳",
+  "Facebook Services [ Working Update ]",
+  "Facebook Story Reactions ( One Click Done )",
+  "Facebook Story Views ( One Click Done )",
+  "Facebook Updated Services",
+  "Facebook Video/ Reels Views ( Non -Drop )",
+  "Google Maps Reviews",
+  "New Arrivals",
+  "Tik tok Followers New ( Ultra Fast ) No Drop",
+  "WhatsApp Channel Members [ Fast ] 🆕",
+  "Youtube views ( Cheapest )",
+];
+
 function normalize(list: ApiService[]): Category[] {
   const map = new Map<string, Service[]>();
   for (const s of list) {
@@ -64,10 +175,18 @@ function normalize(list: ApiService[]): Category[] {
       description: s.description ?? s.desc ?? "",
     });
   }
-  // Alphabetical category order
-  const names = Array.from(map.keys()).sort((a, b) =>
-    sortKey(a).localeCompare(sortKey(b))
-  );
+  // Build a rank lookup from the manual order using the normalized key.
+  const rank = new Map<string, number>();
+  MANUAL_CATEGORY_ORDER.forEach((n, i) => rank.set(sortKey(n), i));
+  const names = Array.from(map.keys()).sort((a, b) => {
+    const ra = rank.get(sortKey(a));
+    const rb = rank.get(sortKey(b));
+    if (ra !== undefined && rb !== undefined) return ra - rb;
+    if (ra !== undefined) return -1;
+    if (rb !== undefined) return 1;
+    // Anything not in the manual list goes to the end, alphabetically.
+    return sortKey(a).localeCompare(sortKey(b));
+  });
   return names.map((name, i) => ({
     id: `cat-${i + 1}`,
     name,
