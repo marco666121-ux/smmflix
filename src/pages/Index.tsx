@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useApiServices } from "@/hooks/useApiServices";
 import Guidelines from "@/components/Guidelines";
 import { PaymentModal } from "@/components/PaymentModal";
-import { useAdminSettings, applyMarkup } from "@/lib/adminSettings";
+import { useAdminSettings, applyMarkup, findRedeemPercent } from "@/lib/adminSettings";
 import wordmark from "@/assets/smmflix-wordmark.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,12 +17,11 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
 import { toast } from "@/hooks/use-toast";
-import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone } from "lucide-react";
+import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, Link2, Tag, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Index = () => {
@@ -31,6 +30,9 @@ const Index = () => {
   const [quantity, setQuantity] = useState<string>("");
   const [link, setLink] = useState<string>("");
   const [search, setSearch] = useState<string>("");
+  const [showCheapest, setShowCheapest] = useState<boolean>(false);
+  const [redeemInput, setRedeemInput] = useState<string>("");
+  const [appliedRedeem, setAppliedRedeem] = useState<{ code: string; percent: number } | null>(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const adminSettings = useAdminSettings();
@@ -93,14 +95,61 @@ const Index = () => {
         String(s.rate).includes(q)
       );
     });
-    // Default: cheap → expensive. "premium" reverses to expensive → cheap.
     if (q.includes("premium")) filtered.sort((a, b) => b.rate - a.rate);
     else filtered.sort((a, b) => a.rate - b.rate);
     return filtered.slice(0, 50);
   }, [search, allServices]);
 
+  // Top 30 cheapest services across the whole site
+  const cheapestList = useMemo(
+    () => [...allServices].filter((s) => s.rate > 0).sort((a, b) => a.rate - b.rate).slice(0, 30),
+    [allServices]
+  );
+
   const qty = Number(quantity) || 0;
-  const total = service ? (qty / 1000) * service.rate : 0;
+  const subtotal = service ? (qty / 1000) * service.rate : 0;
+  const discount = appliedRedeem ? subtotal * (appliedRedeem.percent / 100) : 0;
+  const total = Math.max(0, subtotal - discount);
+
+  // Pick up deep-link preselect (set by /service/:id)
+  useEffect(() => {
+    const pre = sessionStorage.getItem("smmflix.preselectServiceId");
+    if (!pre || allServices.length === 0) return;
+    const found = allServices.find((s) => s.id === pre);
+    if (found) {
+      setCategoryId(found._categoryId);
+      setServiceId(found.id);
+      sessionStorage.removeItem("smmflix.preselectServiceId");
+      setTimeout(() => {
+        document.getElementById("order-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [allServices]);
+
+  const applyRedeem = () => {
+    const pct = findRedeemPercent(adminSettings.redeemCodes, redeemInput);
+    if (!pct) {
+      toast({ title: "Invalid code", description: "That redeem code doesn't exist." });
+      return;
+    }
+    setAppliedRedeem({ code: redeemInput.trim().toUpperCase(), percent: pct });
+    toast({ title: `Code applied`, description: `${pct}% off your order.` });
+  };
+
+  const clearRedeem = () => {
+    setAppliedRedeem(null);
+    setRedeemInput("");
+  };
+
+  const copyServiceLink = async (id: string) => {
+    const url = `${window.location.origin}/service/${id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: "Link copied", description: url });
+    } catch {
+      toast({ title: "Copy failed", description: url });
+    }
+  };
 
   const sendWhatsappOrder = (utr?: string) => {
     if (!service) return;
@@ -112,8 +161,13 @@ const Index = () => {
       `🔹 Category: ${category?.name ?? ""}`,
       `🔹 Quantity: ${qty}`,
       `🔹 Link: ${link}`,
-      `🔹 Price: ₹ ${total.toFixed(2)}`,
+      `🔹 Subtotal: ₹ ${subtotal.toFixed(2)}`,
     ];
+    if (appliedRedeem) {
+      lines.push(`🔹 Code: ${appliedRedeem.code} (-${appliedRedeem.percent}%)`);
+      lines.push(`🔹 Discount: -₹ ${discount.toFixed(2)}`);
+    }
+    lines.push(`🔹 Total: ₹ ${total.toFixed(2)}`);
     if (utr) lines.push(`🔹 UTR: ${utr}`, `🔹 Status: PAID ✅`);
     const message = encodeURIComponent(lines.join("\n"));
     window.open(`${supportWa}?text=${message}`, "_blank");
@@ -321,7 +375,7 @@ const Index = () => {
             <h2 className="display text-3xl font-black tracking-wide">NEW ORDER</h2>
           </div>
 
-          {/* Search */}
+          {/* Search + Cheapest */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Search Services</Label>
@@ -329,39 +383,76 @@ const Index = () => {
                 {loading ? "Syncing…" : error ? <span className="text-destructive">Offline</span> : `${categories.reduce((n, c) => n + c.services.length, 0)} services live`}
               </span>
             </div>
-            <div className="relative">
-              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name, ID, category, 'cheap' or 'premium'"
-                className="pl-9 bg-input border-border focus-visible:ring-primary rounded-sm"
-              />
-            </div>
-            {search && (
-              <div className="rounded-sm border border-border divide-y divide-border max-h-80 overflow-y-auto overscroll-contain bg-card [-webkit-overflow-scrolling:touch] scroll-smooth">
-                {searchResults.length === 0 && (
-                  <div className="p-4 text-sm text-muted-foreground">No services found.</div>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    if (e.target.value) setShowCheapest(false);
+                  }}
+                  placeholder="Search by name, ID, category…"
+                  className="pl-9 bg-input border-border focus-visible:ring-primary rounded-sm"
+                />
+              </div>
+              <Button
+                type="button"
+                onClick={() => {
+                  setShowCheapest((v) => !v);
+                  setSearch("");
+                }}
+                variant={showCheapest ? "default" : "outline"}
+                className={cn(
+                  "shrink-0 font-black uppercase tracking-widest text-xs rounded-sm gap-1.5",
+                  showCheapest && "shadow-[0_0_18px_hsl(var(--primary)/0.5)]"
                 )}
-                {searchResults.map((s) => (
-                  <button
-                    type="button"
-                    key={`${s._categoryId}-${s.id}`}
-                    onClick={() => {
-                      setCategoryId(s._categoryId);
-                      setServiceId(s.id);
-                      setSearch("");
-                    }}
-                    className="w-full text-left p-3 hover:bg-primary/10 transition-colors"
-                  >
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="text-xs font-black text-primary">#{s.id}</span>
-                      <span className="text-sm font-black text-foreground">₹ {s.rate.toFixed(2)}</span>
+              >
+                <TrendingDown className="h-4 w-4" />
+                Cheapest
+              </Button>
+            </div>
+            {(search || showCheapest) && (
+              <div className="rounded-sm border border-border divide-y divide-border max-h-80 overflow-y-auto overscroll-contain bg-card [-webkit-overflow-scrolling:touch] scroll-smooth">
+                {(() => {
+                  const list = showCheapest ? cheapestList : searchResults;
+                  if (list.length === 0) {
+                    return <div className="p-4 text-sm text-muted-foreground">No services found.</div>;
+                  }
+                  return list.map((s) => (
+                    <div
+                      key={`${s._categoryId}-${s.id}`}
+                      className="w-full p-3 hover:bg-primary/10 transition-colors flex items-start gap-2"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCategoryId(s._categoryId);
+                          setServiceId(s.id);
+                          setSearch("");
+                          setShowCheapest(false);
+                        }}
+                        className="flex-1 text-left min-w-0"
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="text-xs font-black text-primary">#{s.id}</span>
+                          <span className="text-sm font-black text-foreground">₹ {s.rate.toFixed(2)}</span>
+                        </div>
+                        <div className="text-sm font-semibold leading-snug mb-1 break-words">{s.name}</div>
+                        <div className="text-[11px] text-muted-foreground uppercase tracking-wider break-words">{s._categoryName}</div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => copyServiceLink(s.id)}
+                        aria-label="Copy share link"
+                        title="Copy share link"
+                        className="p-1.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors shrink-0"
+                      >
+                        <Link2 className="h-4 w-4" />
+                      </button>
                     </div>
-                    <div className="text-sm font-semibold leading-snug mb-1">{s.name}</div>
-                    <div className="text-[11px] text-muted-foreground uppercase tracking-wider">{s._categoryName}</div>
-                  </button>
-                ))}
+                  ));
+                })()}
               </div>
             )}
           </div>
@@ -387,8 +478,7 @@ const Index = () => {
                 align="start"
                 sideOffset={6}
               >
-                <Command>
-                  <CommandInput placeholder="Search categories…" className="h-10" />
+                <Command shouldFilter={false}>
                   <CommandList className="max-h-[60vh] overscroll-contain">
                     <CommandEmpty>No category found.</CommandEmpty>
                     <CommandGroup>
@@ -429,36 +519,49 @@ const Index = () => {
                 {category.services.map((s) => {
                   const selected = s.id === serviceId;
                   return (
-                    <button
-                      type="button"
+                    <div
                       key={s.id}
-                      onClick={() => setServiceId(s.id)}
-                      className={`w-full text-left p-4 transition-colors border-l-2 ${
+                      className={`relative w-full transition-colors border-l-2 ${
                         selected
                           ? "bg-primary/15 border-l-primary"
                           : "border-l-transparent hover:bg-muted/40"
                       }`}
                     >
-                      <div className="text-xs font-black text-primary mb-1">
-                        #{s.id}
-                      </div>
-                      <div className="text-sm font-semibold leading-snug mb-2">
-                        {s.name}
-                      </div>
-                      <div className="text-base font-black text-foreground mb-2">
-                        ₹ {s.rate.toFixed(2)}
-                        <span className="text-xs text-muted-foreground font-normal ml-1">
-                          / 1000
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground uppercase tracking-wider">
-                        <span>MIN <span className="text-foreground font-bold">{s.min}</span></span>
-                        <span>MAX <span className="text-foreground font-bold">{s.max}</span></span>
-                      </div>
-                      {s.description && (
-                        <pre className="mt-2 text-[11px] text-muted-foreground whitespace-pre-wrap font-sans">{s.description}</pre>
-                      )}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => setServiceId(s.id)}
+                        className="w-full text-left p-4 pr-12"
+                      >
+                        <div className="text-xs font-black text-primary mb-1">
+                          #{s.id}
+                        </div>
+                        <div className="text-sm font-semibold leading-snug mb-2">
+                          {s.name}
+                        </div>
+                        <div className="text-base font-black text-foreground mb-2">
+                          ₹ {s.rate.toFixed(2)}
+                          <span className="text-xs text-muted-foreground font-normal ml-1">
+                            / 1000
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground uppercase tracking-wider">
+                          <span>MIN <span className="text-foreground font-bold">{s.min}</span></span>
+                          <span>MAX <span className="text-foreground font-bold">{s.max}</span></span>
+                        </div>
+                        {s.description && (
+                          <pre className="mt-2 text-[11px] text-muted-foreground whitespace-pre-wrap font-sans">{s.description}</pre>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); copyServiceLink(s.id); }}
+                        aria-label="Copy share link to this service"
+                        title="Copy share link"
+                        className="absolute top-3 right-3 p-1.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                      >
+                        <Link2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   );
                 })}
               </div>
@@ -496,11 +599,66 @@ const Index = () => {
             />
           </div>
 
-          <div className="flex items-center justify-between rounded-sm border border-primary/40 bg-primary/10 px-4 py-3">
-            <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Total</span>
-            <span className="text-3xl font-black text-primary display">
-              ₹{total.toFixed(2)}
-            </span>
+          {/* Redeem code */}
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold flex items-center gap-1.5">
+              <Tag className="h-3.5 w-3.5" /> Redeem Code (optional)
+            </Label>
+            {appliedRedeem ? (
+              <div className="flex items-center justify-between rounded-sm border border-primary/40 bg-primary/10 px-3 py-2">
+                <div className="text-sm">
+                  <span className="font-black text-primary">{appliedRedeem.code}</span>
+                  <span className="text-muted-foreground ml-2 text-xs">−{appliedRedeem.percent}% applied</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearRedeem}
+                  aria-label="Remove code"
+                  className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Input
+                  value={redeemInput}
+                  onChange={(e) => setRedeemInput(e.target.value.toUpperCase())}
+                  placeholder="Enter code"
+                  className="bg-input border-border focus-visible:ring-primary rounded-sm uppercase tracking-wider"
+                />
+                <Button
+                  type="button"
+                  onClick={applyRedeem}
+                  disabled={!redeemInput.trim()}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase tracking-widest text-xs rounded-sm"
+                >
+                  Apply
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-sm border border-primary/40 bg-primary/10 px-4 py-3 space-y-1.5">
+            {appliedRedeem && (
+              <>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="uppercase tracking-widest text-muted-foreground font-bold">Subtotal</span>
+                  <span className="font-bold text-foreground">₹ {subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="uppercase tracking-widest text-muted-foreground font-bold">Discount</span>
+                  <span className="font-bold text-primary">−₹ {discount.toFixed(2)}</span>
+                </div>
+                <div className="h-px bg-border/60 my-1" />
+              </>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Total</span>
+              <span className="text-3xl font-black text-primary display">
+                ₹{total.toFixed(2)}
+              </span>
+            </div>
           </div>
 
           <Button

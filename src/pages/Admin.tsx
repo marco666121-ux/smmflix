@@ -12,8 +12,11 @@ import {
   FEATURED_MAX,
   applyMarkup,
   getSettings,
+  resolveTiers,
   saveSettings,
   type AdminSettings,
+  type RedeemCode,
+  type TierMode,
 } from "@/lib/adminSettings";
 import { useApiServices } from "@/hooks/useApiServices";
 import wordmark from "@/assets/smmflix-wordmark.png";
@@ -32,6 +35,9 @@ import {
   Copy,
   Check,
   TrendingDown,
+  Tag,
+  Trash2,
+  Plus,
 } from "lucide-react";
 
 const Admin = () => {
@@ -45,6 +51,8 @@ const Admin = () => {
   const [fmtSelectedId, setFmtSelectedId] = useState<string | null>(null);
   const [fmtCopied, setFmtCopied] = useState(false);
   const [tiersInput, setTiersInput] = useState(() => getSettings().formatterTiers.join(", "));
+  const [newCode, setNewCode] = useState("");
+  const [newCodePct, setNewCodePct] = useState<string>("10");
 
   const allServices = useMemo(
     () =>
@@ -116,9 +124,12 @@ const Admin = () => {
     [fmtSelectedId, allServices]
   );
 
+  // Tiers actually used by formatter (depends on tierMode)
+  const resolvedTiers = useMemo(() => resolveTiers(settings), [settings]);
+
   const fmtText = useMemo(() => {
     if (!fmtSelected) return "";
-    const TIERS = settings.formatterTiers;
+    const TIERS = resolvedTiers;
     const rate = applyMarkup(fmtSelected.rate, settings.priceMarkupPercent);
     // API rate is per 1000 units.
     const lines: string[] = [];
@@ -137,7 +148,7 @@ const Admin = () => {
       lines.push(`${qty} ${unit} - ₹ ${price.toFixed(2)}`);
     }
     return lines.join("\n");
-  }, [fmtSelected, settings.priceMarkupPercent, settings.formatterTiers]);
+  }, [fmtSelected, settings.priceMarkupPercent, resolvedTiers]);
 
   const copyFmt = async () => {
     try {
@@ -651,6 +662,94 @@ const Admin = () => {
           </div>
         </section>
 
+        {/* Redeem Codes */}
+        <section className="card-surface border border-border/60 rounded-sm p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Tag className="h-5 w-5 text-primary" />
+            <h2 className="display text-xl font-black tracking-wider text-primary">REDEEM CODES</h2>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Create discount codes that customers can apply at checkout. Codes are case-insensitive.
+          </p>
+
+          <div className="grid grid-cols-[1fr_110px_auto] gap-2 items-end">
+            <Field label="Code">
+              <Input
+                value={newCode}
+                onChange={(e) => setNewCode(e.target.value.toUpperCase())}
+                placeholder="WELCOME10"
+                className="bg-input border-border focus-visible:ring-primary rounded-sm uppercase tracking-wider"
+              />
+            </Field>
+            <Field label="% off">
+              <Input
+                type="number"
+                min={1}
+                max={100}
+                value={newCodePct}
+                onChange={(e) => setNewCodePct(e.target.value)}
+                className="bg-input border-border focus-visible:ring-primary rounded-sm"
+              />
+            </Field>
+            <Button
+              type="button"
+              onClick={() => {
+                const code = newCode.trim().toUpperCase();
+                const pct = Math.max(1, Math.min(100, Number(newCodePct) || 0));
+                if (!code) {
+                  toast({ title: "Enter a code" });
+                  return;
+                }
+                if (!pct) {
+                  toast({ title: "Enter a discount %" });
+                  return;
+                }
+                if (settings.redeemCodes.some((c) => c.code === code)) {
+                  toast({ title: "Code exists", description: "That code is already in the list." });
+                  return;
+                }
+                update("redeemCodes", [...settings.redeemCodes, { code, percent: pct }]);
+                setNewCode("");
+                setNewCodePct("10");
+                toast({ title: "Code added", description: `${code} — ${pct}% off` });
+              }}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase tracking-widest text-xs rounded-sm h-10 gap-1"
+            >
+              <Plus className="h-4 w-4" /> Add
+            </Button>
+          </div>
+
+          {settings.redeemCodes.length === 0 ? (
+            <div className="text-xs text-muted-foreground border border-dashed border-border rounded-sm p-3 text-center">
+              No codes yet.
+            </div>
+          ) : (
+            <div className="border border-border rounded-sm divide-y divide-border bg-card">
+              {settings.redeemCodes.map((c) => (
+                <div key={c.code} className="flex items-center justify-between gap-3 p-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-black text-primary tracking-wider">{c.code}</div>
+                    <div className="text-[11px] text-muted-foreground uppercase tracking-wider">{c.percent}% off</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      update(
+                        "redeemCodes",
+                        settings.redeemCodes.filter((x) => x.code !== c.code)
+                      );
+                    }}
+                    className="p-2 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
+                    aria-label="Delete code"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         {/* Service Formatter */}
         <section className="card-surface border border-border/60 rounded-sm p-6 space-y-4">
           <div className="flex items-center gap-2">
@@ -661,34 +760,119 @@ const Admin = () => {
             Search a service, click it, and get a ready-to-share message with tiered pricing using your current markup.
           </p>
 
-          <Field label="Quantity tiers (comma-separated)">
-            <Input
-              value={tiersInput}
-              onChange={(e) => {
-                setTiersInput(e.target.value);
-                const parsed = e.target.value
-                  .split(/[,\s]+/)
-                  .map((t) => Number(t.trim()))
-                  .filter((n) => Number.isFinite(n) && n > 0);
-                if (parsed.length) update("formatterTiers", parsed);
-              }}
-              placeholder="100, 200, 500, 1000, 5000"
-              className="bg-input border-border focus-visible:ring-primary rounded-sm"
-            />
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-              <span>Tiers outside a service's min/max are skipped automatically.</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setTiersInput(DEFAULT_FORMATTER_TIERS.join(", "));
-                  update("formatterTiers", DEFAULT_FORMATTER_TIERS);
-                }}
-                className="text-primary hover:underline font-bold uppercase tracking-wider"
-              >
-                Reset
-              </button>
+          <Field label="Tier mode">
+            <div className="grid grid-cols-3 gap-2">
+              {(["manual", "step", "count"] as TierMode[]).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => update("tierMode", m)}
+                  className={`text-[11px] font-black uppercase tracking-widest rounded-sm py-2 border transition-colors ${
+                    settings.tierMode === m
+                      ? "border-primary bg-primary/15 text-primary"
+                      : "border-border bg-muted/30 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {m === "manual" ? "Manual list" : m === "step" ? "Min·Max·Step" : "Min·Max·Count"}
+                </button>
+              ))}
             </div>
           </Field>
+
+          {settings.tierMode === "manual" && (
+            <Field label="Quantity tiers (comma-separated)">
+              <Input
+                value={tiersInput}
+                onChange={(e) => {
+                  setTiersInput(e.target.value);
+                  const parsed = e.target.value
+                    .split(/[,\s]+/)
+                    .map((t) => Number(t.trim()))
+                    .filter((n) => Number.isFinite(n) && n > 0);
+                  if (parsed.length) update("formatterTiers", parsed);
+                }}
+                placeholder="100, 200, 500, 1000, 5000"
+                className="bg-input border-border focus-visible:ring-primary rounded-sm"
+              />
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>Tiers outside a service's min/max are skipped automatically.</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTiersInput(DEFAULT_FORMATTER_TIERS.join(", "));
+                    update("formatterTiers", DEFAULT_FORMATTER_TIERS);
+                  }}
+                  className="text-primary hover:underline font-bold uppercase tracking-wider"
+                >
+                  Reset
+                </button>
+              </div>
+            </Field>
+          )}
+
+          {settings.tierMode === "step" && (
+            <div className="grid grid-cols-3 gap-2">
+              <Field label="Min">
+                <Input
+                  type="number"
+                  value={settings.tierMin}
+                  onChange={(e) => update("tierMin", Math.max(1, Number(e.target.value) || 1))}
+                  className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                />
+              </Field>
+              <Field label="Max">
+                <Input
+                  type="number"
+                  value={settings.tierMax}
+                  onChange={(e) => update("tierMax", Math.max(1, Number(e.target.value) || 1))}
+                  className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                />
+              </Field>
+              <Field label="Step">
+                <Input
+                  type="number"
+                  value={settings.tierStep}
+                  onChange={(e) => update("tierStep", Math.max(1, Number(e.target.value) || 1))}
+                  className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                />
+              </Field>
+            </div>
+          )}
+
+          {settings.tierMode === "count" && (
+            <div className="grid grid-cols-3 gap-2">
+              <Field label="Min">
+                <Input
+                  type="number"
+                  value={settings.tierMin}
+                  onChange={(e) => update("tierMin", Math.max(1, Number(e.target.value) || 1))}
+                  className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                />
+              </Field>
+              <Field label="Max">
+                <Input
+                  type="number"
+                  value={settings.tierMax}
+                  onChange={(e) => update("tierMax", Math.max(1, Number(e.target.value) || 1))}
+                  className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                />
+              </Field>
+              <Field label="Count">
+                <Input
+                  type="number"
+                  value={settings.tierCount}
+                  onChange={(e) => update("tierCount", Math.max(2, Math.min(100, Number(e.target.value) || 2)))}
+                  className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                />
+              </Field>
+            </div>
+          )}
+
+          <div className="text-[11px] text-muted-foreground border border-border bg-muted/30 p-2 rounded-sm break-words">
+            <span className="font-bold uppercase tracking-widest text-foreground">Resolved tiers ({resolvedTiers.length}):</span>{" "}
+            {resolvedTiers.slice(0, 30).join(", ")}{resolvedTiers.length > 30 ? "…" : ""}
+          </div>
+
 
           <div className="relative">
             <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
