@@ -478,8 +478,7 @@ const Index = () => {
                 align="start"
                 sideOffset={6}
               >
-                <Command>
-                  <CommandInput placeholder="Search categories…" className="h-10" />
+                <Command shouldFilter={false}>
                   <CommandList className="max-h-[60vh] overscroll-contain">
                     <CommandEmpty>No category found.</CommandEmpty>
                     <CommandGroup>
@@ -520,36 +519,49 @@ const Index = () => {
                 {category.services.map((s) => {
                   const selected = s.id === serviceId;
                   return (
-                    <button
-                      type="button"
+                    <div
                       key={s.id}
-                      onClick={() => setServiceId(s.id)}
-                      className={`w-full text-left p-4 transition-colors border-l-2 ${
+                      className={`relative w-full transition-colors border-l-2 ${
                         selected
                           ? "bg-primary/15 border-l-primary"
                           : "border-l-transparent hover:bg-muted/40"
                       }`}
                     >
-                      <div className="text-xs font-black text-primary mb-1">
-                        #{s.id}
-                      </div>
-                      <div className="text-sm font-semibold leading-snug mb-2">
-                        {s.name}
-                      </div>
-                      <div className="text-base font-black text-foreground mb-2">
-                        ₹ {s.rate.toFixed(2)}
-                        <span className="text-xs text-muted-foreground font-normal ml-1">
-                          / 1000
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground uppercase tracking-wider">
-                        <span>MIN <span className="text-foreground font-bold">{s.min}</span></span>
-                        <span>MAX <span className="text-foreground font-bold">{s.max}</span></span>
-                      </div>
-                      {s.description && (
-                        <pre className="mt-2 text-[11px] text-muted-foreground whitespace-pre-wrap font-sans">{s.description}</pre>
-                      )}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => setServiceId(s.id)}
+                        className="w-full text-left p-4 pr-12"
+                      >
+                        <div className="text-xs font-black text-primary mb-1">
+                          #{s.id}
+                        </div>
+                        <div className="text-sm font-semibold leading-snug mb-2">
+                          {s.name}
+                        </div>
+                        <div className="text-base font-black text-foreground mb-2">
+                          ₹ {s.rate.toFixed(2)}
+                          <span className="text-xs text-muted-foreground font-normal ml-1">
+                            / 1000
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground uppercase tracking-wider">
+                          <span>MIN <span className="text-foreground font-bold">{s.min}</span></span>
+                          <span>MAX <span className="text-foreground font-bold">{s.max}</span></span>
+                        </div>
+                        {s.description && (
+                          <pre className="mt-2 text-[11px] text-muted-foreground whitespace-pre-wrap font-sans">{s.description}</pre>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); copyServiceLink(s.id); }}
+                        aria-label="Copy share link to this service"
+                        title="Copy share link"
+                        className="absolute top-3 right-3 p-1.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                      >
+                        <Link2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   );
                 })}
               </div>
@@ -587,11 +599,66 @@ const Index = () => {
             />
           </div>
 
-          <div className="flex items-center justify-between rounded-sm border border-primary/40 bg-primary/10 px-4 py-3">
-            <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Total</span>
-            <span className="text-3xl font-black text-primary display">
-              ₹{total.toFixed(2)}
-            </span>
+          {/* Redeem code */}
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold flex items-center gap-1.5">
+              <Tag className="h-3.5 w-3.5" /> Redeem Code (optional)
+            </Label>
+            {appliedRedeem ? (
+              <div className="flex items-center justify-between rounded-sm border border-primary/40 bg-primary/10 px-3 py-2">
+                <div className="text-sm">
+                  <span className="font-black text-primary">{appliedRedeem.code}</span>
+                  <span className="text-muted-foreground ml-2 text-xs">−{appliedRedeem.percent}% applied</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearRedeem}
+                  aria-label="Remove code"
+                  className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Input
+                  value={redeemInput}
+                  onChange={(e) => setRedeemInput(e.target.value.toUpperCase())}
+                  placeholder="Enter code"
+                  className="bg-input border-border focus-visible:ring-primary rounded-sm uppercase tracking-wider"
+                />
+                <Button
+                  type="button"
+                  onClick={applyRedeem}
+                  disabled={!redeemInput.trim()}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase tracking-widest text-xs rounded-sm"
+                >
+                  Apply
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-sm border border-primary/40 bg-primary/10 px-4 py-3 space-y-1.5">
+            {appliedRedeem && (
+              <>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="uppercase tracking-widest text-muted-foreground font-bold">Subtotal</span>
+                  <span className="font-bold text-foreground">₹ {subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="uppercase tracking-widest text-muted-foreground font-bold">Discount</span>
+                  <span className="font-bold text-primary">−₹ {discount.toFixed(2)}</span>
+                </div>
+                <div className="h-px bg-border/60 my-1" />
+              </>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Total</span>
+              <span className="text-3xl font-black text-primary display">
+                ₹{total.toFixed(2)}
+              </span>
+            </div>
           </div>
 
           <Button
