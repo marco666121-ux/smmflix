@@ -12,8 +12,11 @@ import {
   FEATURED_MAX,
   applyMarkup,
   getSettings,
+  resolveTiers,
   saveSettings,
   type AdminSettings,
+  type RedeemCode,
+  type TierMode,
 } from "@/lib/adminSettings";
 import { useApiServices } from "@/hooks/useApiServices";
 import wordmark from "@/assets/smmflix-wordmark.png";
@@ -32,6 +35,9 @@ import {
   Copy,
   Check,
   TrendingDown,
+  Tag,
+  Trash2,
+  Plus,
 } from "lucide-react";
 
 const Admin = () => {
@@ -45,6 +51,8 @@ const Admin = () => {
   const [fmtSelectedId, setFmtSelectedId] = useState<string | null>(null);
   const [fmtCopied, setFmtCopied] = useState(false);
   const [tiersInput, setTiersInput] = useState(() => getSettings().formatterTiers.join(", "));
+  const [newCode, setNewCode] = useState("");
+  const [newCodePct, setNewCodePct] = useState<string>("10");
 
   const allServices = useMemo(
     () =>
@@ -116,9 +124,12 @@ const Admin = () => {
     [fmtSelectedId, allServices]
   );
 
+  // Tiers actually used by formatter (depends on tierMode)
+  const resolvedTiers = useMemo(() => resolveTiers(settings), [settings]);
+
   const fmtText = useMemo(() => {
     if (!fmtSelected) return "";
-    const TIERS = settings.formatterTiers;
+    const TIERS = resolvedTiers;
     const rate = applyMarkup(fmtSelected.rate, settings.priceMarkupPercent);
     // API rate is per 1000 units.
     const lines: string[] = [];
@@ -137,7 +148,7 @@ const Admin = () => {
       lines.push(`${qty} ${unit} - ₹ ${price.toFixed(2)}`);
     }
     return lines.join("\n");
-  }, [fmtSelected, settings.priceMarkupPercent, settings.formatterTiers]);
+  }, [fmtSelected, settings.priceMarkupPercent, resolvedTiers]);
 
   const copyFmt = async () => {
     try {
