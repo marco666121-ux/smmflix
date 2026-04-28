@@ -262,6 +262,11 @@ const Index = () => {
                 </div>
               </PopoverContent>
             </Popover>
+            <RedeemPopover
+              applied={appliedRedeem}
+              onApply={(a) => setAppliedRedeem(a)}
+              onClear={clearRedeem}
+            />
             <a
               href={supportWa}
               target="_blank"
