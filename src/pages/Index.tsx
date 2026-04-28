@@ -457,6 +457,8 @@ const Index = () => {
             )}
           </div>
 
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Category</Label>
             <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
               <PopoverTrigger asChild>
                 <button
