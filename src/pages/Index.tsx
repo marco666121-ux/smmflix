@@ -21,8 +21,9 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { toast } from "@/hooks/use-toast";
-import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, Link2, Tag, X } from "lucide-react";
+import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RedeemPopover } from "@/components/RedeemPopover";
 
 const Index = () => {
   const [categoryId, setCategoryId] = useState<string>("");
