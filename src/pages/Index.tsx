@@ -21,8 +21,9 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { toast } from "@/hooks/use-toast";
-import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, Link2, Tag, X } from "lucide-react";
+import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RedeemPopover } from "@/components/RedeemPopover";
 
 const Index = () => {
   const [categoryId, setCategoryId] = useState<string>("");
@@ -31,7 +32,6 @@ const Index = () => {
   const [link, setLink] = useState<string>("");
   const [search, setSearch] = useState<string>("");
   const [showCheapest, setShowCheapest] = useState<boolean>(false);
-  const [redeemInput, setRedeemInput] = useState<string>("");
   const [appliedRedeem, setAppliedRedeem] = useState<{ code: string; percent: number } | null>(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -126,20 +126,7 @@ const Index = () => {
     }
   }, [allServices]);
 
-  const applyRedeem = () => {
-    const pct = findRedeemPercent(adminSettings.redeemCodes, redeemInput);
-    if (!pct) {
-      toast({ title: "Invalid code", description: "That redeem code doesn't exist." });
-      return;
-    }
-    setAppliedRedeem({ code: redeemInput.trim().toUpperCase(), percent: pct });
-    toast({ title: `Code applied`, description: `${pct}% off your order.` });
-  };
-
-  const clearRedeem = () => {
-    setAppliedRedeem(null);
-    setRedeemInput("");
-  };
+  const clearRedeem = () => setAppliedRedeem(null);
 
   const copyServiceLink = async (id: string) => {
     const url = `${window.location.origin}/service/${id}`;
@@ -275,6 +262,11 @@ const Index = () => {
                 </div>
               </PopoverContent>
             </Popover>
+            <RedeemPopover
+              applied={appliedRedeem}
+              onApply={(a) => setAppliedRedeem(a)}
+              onClear={clearRedeem}
+            />
             <a
               href={supportWa}
               target="_blank"
@@ -530,25 +522,26 @@ const Index = () => {
                       <button
                         type="button"
                         onClick={() => setServiceId(s.id)}
-                        className="w-full text-left p-4 pr-12"
+                        className="w-full text-left p-3 pr-10"
                       >
-                        <div className="text-xs font-black text-primary mb-1">
-                          #{s.id}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-[10px] font-black text-primary shrink-0">#{s.id}</span>
+                              <span className="text-sm font-semibold leading-snug truncate">{s.name}</span>
+                            </div>
+                            {selected && (
+                              <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground uppercase tracking-wider mt-1">
+                                <span>MIN <span className="text-foreground font-bold">{s.min}</span></span>
+                                <span>MAX <span className="text-foreground font-bold">{s.max}</span></span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-sm font-black text-foreground shrink-0">
+                            ₹ {s.rate.toFixed(2)}
+                          </div>
                         </div>
-                        <div className="text-sm font-semibold leading-snug mb-2">
-                          {s.name}
-                        </div>
-                        <div className="text-base font-black text-foreground mb-2">
-                          ₹ {s.rate.toFixed(2)}
-                          <span className="text-xs text-muted-foreground font-normal ml-1">
-                            / 1000
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground uppercase tracking-wider">
-                          <span>MIN <span className="text-foreground font-bold">{s.min}</span></span>
-                          <span>MAX <span className="text-foreground font-bold">{s.max}</span></span>
-                        </div>
-                        {s.description && (
+                        {selected && s.description && (
                           <pre className="mt-2 text-[11px] text-muted-foreground whitespace-pre-wrap font-sans">{s.description}</pre>
                         )}
                       </button>
@@ -599,45 +592,6 @@ const Index = () => {
             />
           </div>
 
-          {/* Redeem code */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold flex items-center gap-1.5">
-              <Tag className="h-3.5 w-3.5" /> Redeem Code (optional)
-            </Label>
-            {appliedRedeem ? (
-              <div className="flex items-center justify-between rounded-sm border border-primary/40 bg-primary/10 px-3 py-2">
-                <div className="text-sm">
-                  <span className="font-black text-primary">{appliedRedeem.code}</span>
-                  <span className="text-muted-foreground ml-2 text-xs">−{appliedRedeem.percent}% applied</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={clearRedeem}
-                  aria-label="Remove code"
-                  className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <Input
-                  value={redeemInput}
-                  onChange={(e) => setRedeemInput(e.target.value.toUpperCase())}
-                  placeholder="Enter code"
-                  className="bg-input border-border focus-visible:ring-primary rounded-sm uppercase tracking-wider"
-                />
-                <Button
-                  type="button"
-                  onClick={applyRedeem}
-                  disabled={!redeemInput.trim()}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase tracking-widest text-xs rounded-sm"
-                >
-                  Apply
-                </Button>
-              </div>
-            )}
-          </div>
 
           <div className="rounded-sm border border-primary/40 bg-primary/10 px-4 py-3 space-y-1.5">
             {appliedRedeem && (
