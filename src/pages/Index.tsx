@@ -32,7 +32,6 @@ const Index = () => {
   const [link, setLink] = useState<string>("");
   const [search, setSearch] = useState<string>("");
   const [showCheapest, setShowCheapest] = useState<boolean>(false);
-  const [redeemInput, setRedeemInput] = useState<string>("");
   const [appliedRedeem, setAppliedRedeem] = useState<{ code: string; percent: number } | null>(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -127,20 +126,7 @@ const Index = () => {
     }
   }, [allServices]);
 
-  const applyRedeem = () => {
-    const pct = findRedeemPercent(adminSettings.redeemCodes, redeemInput);
-    if (!pct) {
-      toast({ title: "Invalid code", description: "That redeem code doesn't exist." });
-      return;
-    }
-    setAppliedRedeem({ code: redeemInput.trim().toUpperCase(), percent: pct });
-    toast({ title: `Code applied`, description: `${pct}% off your order.` });
-  };
-
-  const clearRedeem = () => {
-    setAppliedRedeem(null);
-    setRedeemInput("");
-  };
+  const clearRedeem = () => setAppliedRedeem(null);
 
   const copyServiceLink = async (id: string) => {
     const url = `${window.location.origin}/service/${id}`;
