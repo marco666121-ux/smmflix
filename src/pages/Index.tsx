@@ -95,14 +95,61 @@ const Index = () => {
         String(s.rate).includes(q)
       );
     });
-    // Default: cheap → expensive. "premium" reverses to expensive → cheap.
     if (q.includes("premium")) filtered.sort((a, b) => b.rate - a.rate);
     else filtered.sort((a, b) => a.rate - b.rate);
     return filtered.slice(0, 50);
   }, [search, allServices]);
 
+  // Top 30 cheapest services across the whole site
+  const cheapestList = useMemo(
+    () => [...allServices].filter((s) => s.rate > 0).sort((a, b) => a.rate - b.rate).slice(0, 30),
+    [allServices]
+  );
+
   const qty = Number(quantity) || 0;
-  const total = service ? (qty / 1000) * service.rate : 0;
+  const subtotal = service ? (qty / 1000) * service.rate : 0;
+  const discount = appliedRedeem ? subtotal * (appliedRedeem.percent / 100) : 0;
+  const total = Math.max(0, subtotal - discount);
+
+  // Pick up deep-link preselect (set by /service/:id)
+  useEffect(() => {
+    const pre = sessionStorage.getItem("smmflix.preselectServiceId");
+    if (!pre || allServices.length === 0) return;
+    const found = allServices.find((s) => s.id === pre);
+    if (found) {
+      setCategoryId(found._categoryId);
+      setServiceId(found.id);
+      sessionStorage.removeItem("smmflix.preselectServiceId");
+      setTimeout(() => {
+        document.getElementById("order-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [allServices]);
+
+  const applyRedeem = () => {
+    const pct = findRedeemPercent(adminSettings.redeemCodes, redeemInput);
+    if (!pct) {
+      toast({ title: "Invalid code", description: "That redeem code doesn't exist." });
+      return;
+    }
+    setAppliedRedeem({ code: redeemInput.trim().toUpperCase(), percent: pct });
+    toast({ title: `Code applied`, description: `${pct}% off your order.` });
+  };
+
+  const clearRedeem = () => {
+    setAppliedRedeem(null);
+    setRedeemInput("");
+  };
+
+  const copyServiceLink = async (id: string) => {
+    const url = `${window.location.origin}/service/${id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: "Link copied", description: url });
+    } catch {
+      toast({ title: "Copy failed", description: url });
+    }
+  };
 
   const sendWhatsappOrder = (utr?: string) => {
     if (!service) return;
