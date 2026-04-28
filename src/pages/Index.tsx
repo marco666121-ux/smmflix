@@ -522,25 +522,26 @@ const Index = () => {
                       <button
                         type="button"
                         onClick={() => setServiceId(s.id)}
-                        className="w-full text-left p-4 pr-12"
+                        className="w-full text-left p-3 pr-10"
                       >
-                        <div className="text-xs font-black text-primary mb-1">
-                          #{s.id}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-[10px] font-black text-primary shrink-0">#{s.id}</span>
+                              <span className="text-sm font-semibold leading-snug truncate">{s.name}</span>
+                            </div>
+                            {selected && (
+                              <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground uppercase tracking-wider mt-1">
+                                <span>MIN <span className="text-foreground font-bold">{s.min}</span></span>
+                                <span>MAX <span className="text-foreground font-bold">{s.max}</span></span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-sm font-black text-foreground shrink-0">
+                            ₹ {s.rate.toFixed(2)}
+                          </div>
                         </div>
-                        <div className="text-sm font-semibold leading-snug mb-2">
-                          {s.name}
-                        </div>
-                        <div className="text-base font-black text-foreground mb-2">
-                          ₹ {s.rate.toFixed(2)}
-                          <span className="text-xs text-muted-foreground font-normal ml-1">
-                            / 1000
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground uppercase tracking-wider">
-                          <span>MIN <span className="text-foreground font-bold">{s.min}</span></span>
-                          <span>MAX <span className="text-foreground font-bold">{s.max}</span></span>
-                        </div>
-                        {s.description && (
+                        {selected && s.description && (
                           <pre className="mt-2 text-[11px] text-muted-foreground whitespace-pre-wrap font-sans">{s.description}</pre>
                         )}
                       </button>
