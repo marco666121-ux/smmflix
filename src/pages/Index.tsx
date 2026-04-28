@@ -591,45 +591,6 @@ const Index = () => {
             />
           </div>
 
-          {/* Redeem code */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold flex items-center gap-1.5">
-              <Tag className="h-3.5 w-3.5" /> Redeem Code (optional)
-            </Label>
-            {appliedRedeem ? (
-              <div className="flex items-center justify-between rounded-sm border border-primary/40 bg-primary/10 px-3 py-2">
-                <div className="text-sm">
-                  <span className="font-black text-primary">{appliedRedeem.code}</span>
-                  <span className="text-muted-foreground ml-2 text-xs">−{appliedRedeem.percent}% applied</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={clearRedeem}
-                  aria-label="Remove code"
-                  className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <Input
-                  value={redeemInput}
-                  onChange={(e) => setRedeemInput(e.target.value.toUpperCase())}
-                  placeholder="Enter code"
-                  className="bg-input border-border focus-visible:ring-primary rounded-sm uppercase tracking-wider"
-                />
-                <Button
-                  type="button"
-                  onClick={applyRedeem}
-                  disabled={!redeemInput.trim()}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase tracking-widest text-xs rounded-sm"
-                >
-                  Apply
-                </Button>
-              </div>
-            )}
-          </div>
 
           <div className="rounded-sm border border-primary/40 bg-primary/10 px-4 py-3 space-y-1.5">
             {appliedRedeem && (
