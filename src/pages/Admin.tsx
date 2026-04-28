@@ -672,34 +672,119 @@ const Admin = () => {
             Search a service, click it, and get a ready-to-share message with tiered pricing using your current markup.
           </p>
 
-          <Field label="Quantity tiers (comma-separated)">
-            <Input
-              value={tiersInput}
-              onChange={(e) => {
-                setTiersInput(e.target.value);
-                const parsed = e.target.value
-                  .split(/[,\s]+/)
-                  .map((t) => Number(t.trim()))
-                  .filter((n) => Number.isFinite(n) && n > 0);
-                if (parsed.length) update("formatterTiers", parsed);
-              }}
-              placeholder="100, 200, 500, 1000, 5000"
-              className="bg-input border-border focus-visible:ring-primary rounded-sm"
-            />
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-              <span>Tiers outside a service's min/max are skipped automatically.</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setTiersInput(DEFAULT_FORMATTER_TIERS.join(", "));
-                  update("formatterTiers", DEFAULT_FORMATTER_TIERS);
-                }}
-                className="text-primary hover:underline font-bold uppercase tracking-wider"
-              >
-                Reset
-              </button>
+          <Field label="Tier mode">
+            <div className="grid grid-cols-3 gap-2">
+              {(["manual", "step", "count"] as TierMode[]).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => update("tierMode", m)}
+                  className={`text-[11px] font-black uppercase tracking-widest rounded-sm py-2 border transition-colors ${
+                    settings.tierMode === m
+                      ? "border-primary bg-primary/15 text-primary"
+                      : "border-border bg-muted/30 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {m === "manual" ? "Manual list" : m === "step" ? "Min·Max·Step" : "Min·Max·Count"}
+                </button>
+              ))}
             </div>
           </Field>
+
+          {settings.tierMode === "manual" && (
+            <Field label="Quantity tiers (comma-separated)">
+              <Input
+                value={tiersInput}
+                onChange={(e) => {
+                  setTiersInput(e.target.value);
+                  const parsed = e.target.value
+                    .split(/[,\s]+/)
+                    .map((t) => Number(t.trim()))
+                    .filter((n) => Number.isFinite(n) && n > 0);
+                  if (parsed.length) update("formatterTiers", parsed);
+                }}
+                placeholder="100, 200, 500, 1000, 5000"
+                className="bg-input border-border focus-visible:ring-primary rounded-sm"
+              />
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>Tiers outside a service's min/max are skipped automatically.</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTiersInput(DEFAULT_FORMATTER_TIERS.join(", "));
+                    update("formatterTiers", DEFAULT_FORMATTER_TIERS);
+                  }}
+                  className="text-primary hover:underline font-bold uppercase tracking-wider"
+                >
+                  Reset
+                </button>
+              </div>
+            </Field>
+          )}
+
+          {settings.tierMode === "step" && (
+            <div className="grid grid-cols-3 gap-2">
+              <Field label="Min">
+                <Input
+                  type="number"
+                  value={settings.tierMin}
+                  onChange={(e) => update("tierMin", Math.max(1, Number(e.target.value) || 1))}
+                  className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                />
+              </Field>
+              <Field label="Max">
+                <Input
+                  type="number"
+                  value={settings.tierMax}
+                  onChange={(e) => update("tierMax", Math.max(1, Number(e.target.value) || 1))}
+                  className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                />
+              </Field>
+              <Field label="Step">
+                <Input
+                  type="number"
+                  value={settings.tierStep}
+                  onChange={(e) => update("tierStep", Math.max(1, Number(e.target.value) || 1))}
+                  className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                />
+              </Field>
+            </div>
+          )}
+
+          {settings.tierMode === "count" && (
+            <div className="grid grid-cols-3 gap-2">
+              <Field label="Min">
+                <Input
+                  type="number"
+                  value={settings.tierMin}
+                  onChange={(e) => update("tierMin", Math.max(1, Number(e.target.value) || 1))}
+                  className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                />
+              </Field>
+              <Field label="Max">
+                <Input
+                  type="number"
+                  value={settings.tierMax}
+                  onChange={(e) => update("tierMax", Math.max(1, Number(e.target.value) || 1))}
+                  className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                />
+              </Field>
+              <Field label="Count">
+                <Input
+                  type="number"
+                  value={settings.tierCount}
+                  onChange={(e) => update("tierCount", Math.max(2, Math.min(100, Number(e.target.value) || 2)))}
+                  className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                />
+              </Field>
+            </div>
+          )}
+
+          <div className="text-[11px] text-muted-foreground border border-border bg-muted/30 p-2 rounded-sm break-words">
+            <span className="font-bold uppercase tracking-widest text-foreground">Resolved tiers ({resolvedTiers.length}):</span>{" "}
+            {resolvedTiers.slice(0, 30).join(", ")}{resolvedTiers.length > 30 ? "…" : ""}
+          </div>
+
 
           <div className="relative">
             <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
