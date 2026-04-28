@@ -46,6 +46,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .eq("role", "admin")
       .maybeSingle()
       .then(({ data }) => setIsAdmin(!!data));
+
+    // Best-effort IP capture for admin visibility
+    fetch("https://api.ipify.org?format=json")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j?.ip) {
+          supabase
+            .from("profiles")
+            .update({ last_ip: j.ip, last_seen_at: new Date().toISOString() })
+            .eq("id", session.user!.id);
+        }
+      })
+      .catch(() => {});
   }, [session]);
 
   return (
