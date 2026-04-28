@@ -161,8 +161,13 @@ const Index = () => {
       `🔹 Category: ${category?.name ?? ""}`,
       `🔹 Quantity: ${qty}`,
       `🔹 Link: ${link}`,
-      `🔹 Price: ₹ ${total.toFixed(2)}`,
+      `🔹 Subtotal: ₹ ${subtotal.toFixed(2)}`,
     ];
+    if (appliedRedeem) {
+      lines.push(`🔹 Code: ${appliedRedeem.code} (-${appliedRedeem.percent}%)`);
+      lines.push(`🔹 Discount: -₹ ${discount.toFixed(2)}`);
+    }
+    lines.push(`🔹 Total: ₹ ${total.toFixed(2)}`);
     if (utr) lines.push(`🔹 UTR: ${utr}`, `🔹 Status: PAID ✅`);
     const message = encodeURIComponent(lines.join("\n"));
     window.open(`${supportWa}?text=${message}`, "_blank");
@@ -370,7 +375,7 @@ const Index = () => {
             <h2 className="display text-3xl font-black tracking-wide">NEW ORDER</h2>
           </div>
 
-          {/* Search */}
+          {/* Search + Cheapest */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Search Services</Label>
@@ -378,45 +383,80 @@ const Index = () => {
                 {loading ? "Syncing…" : error ? <span className="text-destructive">Offline</span> : `${categories.reduce((n, c) => n + c.services.length, 0)} services live`}
               </span>
             </div>
-            <div className="relative">
-              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name, ID, category, 'cheap' or 'premium'"
-                className="pl-9 bg-input border-border focus-visible:ring-primary rounded-sm"
-              />
-            </div>
-            {search && (
-              <div className="rounded-sm border border-border divide-y divide-border max-h-80 overflow-y-auto overscroll-contain bg-card [-webkit-overflow-scrolling:touch] scroll-smooth">
-                {searchResults.length === 0 && (
-                  <div className="p-4 text-sm text-muted-foreground">No services found.</div>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    if (e.target.value) setShowCheapest(false);
+                  }}
+                  placeholder="Search by name, ID, category…"
+                  className="pl-9 bg-input border-border focus-visible:ring-primary rounded-sm"
+                />
+              </div>
+              <Button
+                type="button"
+                onClick={() => {
+                  setShowCheapest((v) => !v);
+                  setSearch("");
+                }}
+                variant={showCheapest ? "default" : "outline"}
+                className={cn(
+                  "shrink-0 font-black uppercase tracking-widest text-xs rounded-sm gap-1.5",
+                  showCheapest && "shadow-[0_0_18px_hsl(var(--primary)/0.5)]"
                 )}
-                {searchResults.map((s) => (
-                  <button
-                    type="button"
-                    key={`${s._categoryId}-${s.id}`}
-                    onClick={() => {
-                      setCategoryId(s._categoryId);
-                      setServiceId(s.id);
-                      setSearch("");
-                    }}
-                    className="w-full text-left p-3 hover:bg-primary/10 transition-colors"
-                  >
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="text-xs font-black text-primary">#{s.id}</span>
-                      <span className="text-sm font-black text-foreground">₹ {s.rate.toFixed(2)}</span>
+              >
+                <TrendingDown className="h-4 w-4" />
+                Cheapest
+              </Button>
+            </div>
+            {(search || showCheapest) && (
+              <div className="rounded-sm border border-border divide-y divide-border max-h-80 overflow-y-auto overscroll-contain bg-card [-webkit-overflow-scrolling:touch] scroll-smooth">
+                {(() => {
+                  const list = showCheapest ? cheapestList : searchResults;
+                  if (list.length === 0) {
+                    return <div className="p-4 text-sm text-muted-foreground">No services found.</div>;
+                  }
+                  return list.map((s) => (
+                    <div
+                      key={`${s._categoryId}-${s.id}`}
+                      className="w-full p-3 hover:bg-primary/10 transition-colors flex items-start gap-2"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCategoryId(s._categoryId);
+                          setServiceId(s.id);
+                          setSearch("");
+                          setShowCheapest(false);
+                        }}
+                        className="flex-1 text-left min-w-0"
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="text-xs font-black text-primary">#{s.id}</span>
+                          <span className="text-sm font-black text-foreground">₹ {s.rate.toFixed(2)}</span>
+                        </div>
+                        <div className="text-sm font-semibold leading-snug mb-1 break-words">{s.name}</div>
+                        <div className="text-[11px] text-muted-foreground uppercase tracking-wider break-words">{s._categoryName}</div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => copyServiceLink(s.id)}
+                        aria-label="Copy share link"
+                        title="Copy share link"
+                        className="p-1.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors shrink-0"
+                      >
+                        <Link2 className="h-4 w-4" />
+                      </button>
                     </div>
-                    <div className="text-sm font-semibold leading-snug mb-1">{s.name}</div>
-                    <div className="text-[11px] text-muted-foreground uppercase tracking-wider">{s._categoryName}</div>
-                  </button>
-                ))}
+                  ));
+                })()}
               </div>
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Category</Label>
             <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
               <PopoverTrigger asChild>
                 <button
