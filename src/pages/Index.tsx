@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useApiServices } from "@/hooks/useApiServices";
 import Guidelines from "@/components/Guidelines";
 import { PaymentModal } from "@/components/PaymentModal";
-import { useAdminSettings, applyMarkup } from "@/lib/adminSettings";
+import { useAdminSettings, applyMarkup, findRedeemPercent } from "@/lib/adminSettings";
 import wordmark from "@/assets/smmflix-wordmark.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,12 +17,11 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
 import { toast } from "@/hooks/use-toast";
-import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone } from "lucide-react";
+import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, Link2, Tag, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Index = () => {
@@ -31,6 +30,9 @@ const Index = () => {
   const [quantity, setQuantity] = useState<string>("");
   const [link, setLink] = useState<string>("");
   const [search, setSearch] = useState<string>("");
+  const [showCheapest, setShowCheapest] = useState<boolean>(false);
+  const [redeemInput, setRedeemInput] = useState<string>("");
+  const [appliedRedeem, setAppliedRedeem] = useState<{ code: string; percent: number } | null>(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const adminSettings = useAdminSettings();
