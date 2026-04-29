@@ -271,9 +271,11 @@ const Index = () => {
               href={supportWa}
               target="_blank"
               rel="noreferrer"
-              className="text-sm font-semibold text-foreground hover:text-primary transition-colors px-4 py-2 rounded border border-border hover:border-primary"
+              aria-label="Contact on WhatsApp"
+              className="inline-flex items-center gap-1.5 h-10 px-3 sm:px-4 rounded border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 transition-colors text-sm font-bold"
             >
-              Support
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+              Contact
             </a>
           </div>
         </div>
@@ -541,9 +543,6 @@ const Index = () => {
                             ₹ {s.rate.toFixed(2)}
                           </div>
                         </div>
-                        {selected && s.description && (
-                          <pre className="mt-2 text-[11px] text-muted-foreground whitespace-pre-wrap font-sans">{s.description}</pre>
-                        )}
                       </button>
                       <button
                         type="button"
@@ -561,33 +560,62 @@ const Index = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
-            <div className="rounded-sm border border-border bg-muted/30 px-3 py-2 uppercase tracking-wider">
-              MIN <span className="text-foreground font-bold">{service?.min ?? 0}</span>
+          {/* Selected service info card (reference layout) */}
+          {service && (
+            <div className="rounded-md border border-border bg-card overflow-hidden">
+              <div className="flex items-start justify-between gap-3 p-4 border-b border-border/60">
+                <h3 className="text-base sm:text-lg font-black leading-snug break-words flex-1">
+                  {service.name}
+                </h3>
+                <span className="shrink-0 text-[10px] font-black tracking-widest uppercase border border-primary/40 bg-primary/10 text-primary rounded-sm px-2 py-1">
+                  ID {service.id}
+                </span>
+              </div>
+              {service.description && service.description.trim() && (
+                <pre className="px-4 py-3 text-[12px] text-muted-foreground whitespace-pre-wrap font-sans leading-relaxed border-b border-border/60 break-words">
+                  {service.description.trim()}
+                </pre>
+              )}
+              <div className="grid grid-cols-2 gap-2 p-3">
+                <div className="rounded-sm border border-border bg-muted/30 px-3 py-2 text-xs uppercase tracking-wider flex items-center justify-between">
+                  <span className="text-muted-foreground">↓ MIN</span>
+                  <span className="text-foreground font-black">{service.min}</span>
+                </div>
+                <div className="rounded-sm border border-border bg-muted/30 px-3 py-2 text-xs uppercase tracking-wider flex items-center justify-between">
+                  <span className="text-muted-foreground">↑ MAX</span>
+                  <span className="text-foreground font-black">{service.max}</span>
+                </div>
+              </div>
             </div>
-            <div className="rounded-sm border border-border bg-muted/30 px-3 py-2 uppercase tracking-wider">
-              MAX <span className="text-foreground font-bold">{service?.max ?? 0}</span>
-            </div>
-          </div>
+          )}
 
+          {/* Quantity + live total (reference layout) */}
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Quantity</Label>
-            <Input
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              placeholder="e.g. 1000"
-              className="bg-input border-border focus-visible:ring-primary rounded-sm"
-            />
+            <div className="grid grid-cols-[1fr_auto] gap-2 items-stretch">
+              <Input
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                placeholder={service ? `min ${service.min}, max ${service.max}` : "Select a service first"}
+                className="bg-input border-border focus-visible:ring-primary rounded-sm"
+              />
+              <div className="rounded-sm border border-primary/40 bg-primary/10 px-4 grid place-items-center min-w-[110px] text-center">
+                <div>
+                  <div className="text-xl font-black text-primary leading-none">₹{total.toFixed(2)}</div>
+                  <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold mt-0.5">total</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Profile / Post Link</Label>
+            <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">🔗 Profile / Post Link</Label>
             <Input
               type="url"
               value={link}
               onChange={(e) => setLink(e.target.value)}
-              placeholder="https://instagram.com/username"
+              placeholder="Enter your profile or post link"
               className="bg-input border-border focus-visible:ring-primary rounded-sm"
             />
           </div>

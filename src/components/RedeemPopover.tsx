@@ -6,7 +6,6 @@ import { Tag, X, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthModal } from "@/components/AuthModal";
 import { useAdminSettings, findRedeemPercent } from "@/lib/adminSettings";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 type Applied = { code: string; percent: number };
@@ -32,7 +31,7 @@ export const RedeemPopover = ({ applied, onApply, onClear }: Props) => {
     setOpen((v) => !v);
   };
 
-  const apply = async () => {
+  const apply = () => {
     const pct = findRedeemPercent(settings.redeemCodes, code);
     if (!pct) {
       toast({ title: "Invalid code" });
@@ -40,19 +39,13 @@ export const RedeemPopover = ({ applied, onApply, onClear }: Props) => {
     }
     const upper = code.trim().toUpperCase();
     onApply({ code: upper, percent: pct });
-    // log usage
-    if (user) {
-      await supabase.from("redeem_usage").insert({
-        user_id: user.id,
-        email: user.email,
-        code: upper,
-        percent: pct,
-      });
-    }
     toast({ title: "Code applied", description: `${pct}% off your order.` });
     setCode("");
     setOpen(false);
   };
+
+  // Display phone (digits before "@") instead of synthetic email
+  const displayName = user?.email?.split("@")[0] ?? "";
 
   return (
     <>
@@ -78,7 +71,7 @@ export const RedeemPopover = ({ applied, onApply, onClear }: Props) => {
         <PopoverContent align="end" sideOffset={8} className="w-[min(92vw,320px)] p-4 bg-popover border-border">
           <div className="flex items-center justify-between mb-3">
             <div className="text-xs font-black uppercase tracking-widest text-muted-foreground truncate max-w-[180px]">
-              {user?.email}
+              +{displayName}
             </div>
             <button
               type="button"
