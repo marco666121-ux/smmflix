@@ -123,7 +123,7 @@ export const useAdminSettings = () => {
   return settings;
 };
 
-export const ADMIN_PASSWORD = "admin@123";
+export const ADMIN_PASSWORD = "2689";
 
 // Apply markup to a base rate
 export const applyMarkup = (rate: number, markupPercent: number): number => {

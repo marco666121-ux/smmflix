@@ -24,6 +24,7 @@ import { toast } from "@/hooks/use-toast";
 import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RedeemPopover } from "@/components/RedeemPopover";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const Index = () => {
   const [categoryId, setCategoryId] = useState<string>("");
@@ -36,11 +37,12 @@ const Index = () => {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const adminSettings = useAdminSettings();
+  const siteSettings = useSiteSettings();
   const { categories: rawCategories, loading, error, newServices, clearNewServices } = useApiServices();
   const [notifOpen, setNotifOpen] = useState(false);
 
   const markup = adminSettings.priceMarkupPercent;
-  const supportWa = `https://wa.me/${adminSettings.supportWhatsapp || "918848490476"}`;
+  const supportWa = `https://wa.me/${siteSettings.support_whatsapp || "918848490476"}`;
 
   // Apply markup + hide filters to the source-of-truth list
   const categories = useMemo(() => {
@@ -182,7 +184,7 @@ const Index = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateOrder()) return;
-    if (adminSettings.qrPaymentEnabled) {
+    if (siteSettings.qr_payment_enabled) {
       setPaymentOpen(true);
     } else {
       sendWhatsappOrder();
@@ -526,11 +528,11 @@ const Index = () => {
                         onClick={() => setServiceId(s.id)}
                         className="w-full text-left p-3 pr-10"
                       >
-                        <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <span className="text-[10px] font-black text-primary shrink-0">#{s.id}</span>
-                              <span className="text-sm font-semibold leading-snug truncate">{s.name}</span>
+                            <div className="flex items-start gap-2 mb-0.5">
+                              <span className="text-[10px] font-black text-primary shrink-0 mt-0.5">#{s.id}</span>
+                              <span className="text-sm font-semibold leading-snug break-words">{s.name}</span>
                             </div>
                             {selected && (
                               <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground uppercase tracking-wider mt-1">
@@ -589,24 +591,16 @@ const Index = () => {
             </div>
           )}
 
-          {/* Quantity + live total (reference layout) */}
+          {/* Quantity */}
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Quantity</Label>
-            <div className="grid grid-cols-[1fr_auto] gap-2 items-stretch">
-              <Input
-                type="number"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                placeholder={service ? `min ${service.min}, max ${service.max}` : "Select a service first"}
-                className="bg-input border-border focus-visible:ring-primary rounded-sm"
-              />
-              <div className="rounded-sm border border-primary/40 bg-primary/10 px-4 grid place-items-center min-w-[110px] text-center">
-                <div>
-                  <div className="text-xl font-black text-primary leading-none">₹{total.toFixed(2)}</div>
-                  <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold mt-0.5">total</div>
-                </div>
-              </div>
-            </div>
+            <Input
+              type="number"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              placeholder={service ? `min ${service.min}, max ${service.max}` : "Select a service first"}
+              className="bg-input border-border focus-visible:ring-primary rounded-sm"
+            />
           </div>
 
           <div className="space-y-2">
@@ -683,8 +677,8 @@ const Index = () => {
           open={paymentOpen}
           onClose={() => setPaymentOpen(false)}
           amount={total}
-          upiId={adminSettings.upiId}
-          payeeName={adminSettings.payeeName}
+          upiId={siteSettings.upi_id}
+          payeeName={siteSettings.payee_name}
           onConfirm={(utr) => {
             setPaymentOpen(false);
             sendWhatsappOrder(utr);

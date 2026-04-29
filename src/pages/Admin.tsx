@@ -20,6 +20,8 @@ import {
 } from "@/lib/adminSettings";
 import { useApiServices } from "@/hooks/useApiServices";
 import wordmark from "@/assets/smmflix-wordmark.png";
+import { useSiteSettings, updateSiteSettings } from "@/hooks/useSiteSettings";
+import { UsersAndBans } from "@/components/UsersAndBans";
 import {
   ArrowLeft,
   Eye,
@@ -44,6 +46,7 @@ const Admin = () => {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
   const [settings, setSettings] = useState<AdminSettings>(getSettings);
+  const siteSettings = useSiteSettings();
   const { categories, newServices } = useApiServices();
   const [visSearch, setVisSearch] = useState("");
   const [featSearch, setFeatSearch] = useState("");
@@ -355,21 +358,27 @@ const Admin = () => {
             <div>
               <div className="font-bold text-foreground">QR Payment Flow</div>
               <div className="text-xs text-muted-foreground">
-                {settings.qrPaymentEnabled
+                {siteSettings.qr_payment_enabled
                   ? "ON — Customers pay via UPI QR, then submit UTR."
                   : "OFF — Customers go directly to WhatsApp with order details."}
               </div>
+              <div className="text-[10px] text-primary mt-1 uppercase tracking-widest font-bold">
+                Synced live to all visitors
+              </div>
             </div>
             <Switch
-              checked={settings.qrPaymentEnabled}
-              onCheckedChange={(v) => update("qrPaymentEnabled", v)}
+              checked={siteSettings.qr_payment_enabled}
+              onCheckedChange={async (v) => {
+                const { error } = await updateSiteSettings({ qr_payment_enabled: v });
+                if (error) toast({ title: "Update failed", description: error });
+              }}
             />
           </div>
 
           <Field label="UPI ID">
             <Input
-              value={settings.upiId}
-              onChange={(e) => update("upiId", e.target.value)}
+              value={siteSettings.upi_id}
+              onChange={(e) => updateSiteSettings({ upi_id: e.target.value })}
               placeholder="yourname@okaxis"
               className="bg-input border-border focus-visible:ring-primary rounded-sm"
             />
@@ -377,8 +386,8 @@ const Admin = () => {
 
           <Field label="Payee Name">
             <Input
-              value={settings.payeeName}
-              onChange={(e) => update("payeeName", e.target.value)}
+              value={siteSettings.payee_name}
+              onChange={(e) => updateSiteSettings({ payee_name: e.target.value })}
               placeholder="SMMFLIX"
               className="bg-input border-border focus-visible:ring-primary rounded-sm"
             />
@@ -386,9 +395,9 @@ const Admin = () => {
 
           <Field label="Support WhatsApp Number">
             <Input
-              value={settings.supportWhatsapp}
+              value={siteSettings.support_whatsapp}
               onChange={(e) =>
-                update("supportWhatsapp", e.target.value.replace(/[^\d]/g, ""))
+                updateSiteSettings({ support_whatsapp: e.target.value.replace(/[^\d]/g, "") })
               }
               placeholder="918848490476"
               inputMode="numeric"
@@ -399,6 +408,9 @@ const Admin = () => {
             </p>
           </Field>
         </section>
+
+        {/* Users & Bans */}
+        <UsersAndBans />
 
         {/* Banner */}
         <section className="card-surface border border-border/60 rounded-sm p-6 space-y-4">

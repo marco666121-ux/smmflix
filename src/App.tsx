@@ -8,6 +8,7 @@ import Admin from "./pages/Admin.tsx";
 import ServiceDetail from "./pages/ServiceDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "@/hooks/useAuth";
+import { BanGate } from "@/components/BanGate";
 
 const queryClient = new QueryClient();
 
@@ -18,12 +19,14 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/service/:id" element={<ServiceDetail />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <BanGate>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/service/:id" element={<ServiceDetail />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BanGate>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
