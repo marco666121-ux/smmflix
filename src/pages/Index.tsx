@@ -543,9 +543,6 @@ const Index = () => {
                             ₹ {s.rate.toFixed(2)}
                           </div>
                         </div>
-                        {selected && s.description && (
-                          <pre className="mt-2 text-[11px] text-muted-foreground whitespace-pre-wrap font-sans">{s.description}</pre>
-                        )}
                       </button>
                       <button
                         type="button"
