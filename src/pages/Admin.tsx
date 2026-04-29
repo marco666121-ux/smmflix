@@ -19,7 +19,6 @@ import {
   type TierMode,
 } from "@/lib/adminSettings";
 import { useApiServices } from "@/hooks/useApiServices";
-import { UsersAndBans } from "@/components/UsersAndBans";
 import wordmark from "@/assets/smmflix-wordmark.png";
 import {
   ArrowLeft,
@@ -934,8 +933,6 @@ const Admin = () => {
             </div>
           )}
         </section>
-
-        <UsersAndBans />
 
         <p className="text-xs text-primary text-center">✓ All changes save automatically.</p>
       </main>
