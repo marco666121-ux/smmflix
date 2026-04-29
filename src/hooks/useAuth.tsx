@@ -34,7 +34,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+      if (s?.user) {
+        // Track last_ip + last_seen on each session change (deferred to avoid deadlock)
+        setTimeout(async () => {
+          try {
+            const r = await fetch("https://api.ipify.org?format=json");
+            const j = await r.json();
+            await supabase
+              .from("profiles")
+              .update({ last_ip: j.ip ?? null, last_seen_at: new Date().toISOString() })
+              .eq("id", s.user.id);
+          } catch {
+            /* ignore */
+          }
+        }, 0);
+      }
+    });
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoading(false);
