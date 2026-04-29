@@ -95,6 +95,33 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          id: string
+          payee_name: string
+          qr_payment_enabled: boolean
+          support_whatsapp: string
+          updated_at: string
+          upi_id: string
+        }
+        Insert: {
+          id?: string
+          payee_name?: string
+          qr_payment_enabled?: boolean
+          support_whatsapp?: string
+          updated_at?: string
+          upi_id?: string
+        }
+        Update: {
+          id?: string
+          payee_name?: string
+          qr_payment_enabled?: boolean
+          support_whatsapp?: string
+          updated_at?: string
+          upi_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
