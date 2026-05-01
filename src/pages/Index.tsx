@@ -38,6 +38,7 @@ const Index = () => {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const siteSettings = useSiteSettings();
+  const { theme, toggleTheme } = useTheme();
   const { categories: rawCategories, loading, error, newServices, clearNewServices } = useApiServices();
   const [notifOpen, setNotifOpen] = useState(false);
 
