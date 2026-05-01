@@ -97,26 +97,68 @@ export type Database = {
       }
       site_settings: {
         Row: {
+          banner_enabled: boolean
+          banner_link: string
+          banner_text: string
+          featured_service_ids: Json
+          formatter_tiers: Json
+          hidden_category_ids: Json
+          hidden_service_ids: Json
           id: string
           payee_name: string
+          price_markup_percent: number
           qr_payment_enabled: boolean
+          redeem_codes: Json
           support_whatsapp: string
+          tier_count: number
+          tier_max: number
+          tier_min: number
+          tier_mode: string
+          tier_step: number
           updated_at: string
           upi_id: string
         }
         Insert: {
+          banner_enabled?: boolean
+          banner_link?: string
+          banner_text?: string
+          featured_service_ids?: Json
+          formatter_tiers?: Json
+          hidden_category_ids?: Json
+          hidden_service_ids?: Json
           id?: string
           payee_name?: string
+          price_markup_percent?: number
           qr_payment_enabled?: boolean
+          redeem_codes?: Json
           support_whatsapp?: string
+          tier_count?: number
+          tier_max?: number
+          tier_min?: number
+          tier_mode?: string
+          tier_step?: number
           updated_at?: string
           upi_id?: string
         }
         Update: {
+          banner_enabled?: boolean
+          banner_link?: string
+          banner_text?: string
+          featured_service_ids?: Json
+          formatter_tiers?: Json
+          hidden_category_ids?: Json
+          hidden_service_ids?: Json
           id?: string
           payee_name?: string
+          price_markup_percent?: number
           qr_payment_enabled?: boolean
+          redeem_codes?: Json
           support_whatsapp?: string
+          tier_count?: number
+          tier_max?: number
+          tier_min?: number
+          tier_mode?: string
+          tier_step?: number
           updated_at?: string
           upi_id?: string
         }

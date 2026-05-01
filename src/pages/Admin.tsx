@@ -11,16 +11,13 @@ import {
   DEFAULT_FORMATTER_TIERS,
   FEATURED_MAX,
   applyMarkup,
-  getSettings,
   resolveTiers,
-  saveSettings,
-  type AdminSettings,
   type RedeemCode,
   type TierMode,
 } from "@/lib/adminSettings";
 import { useApiServices } from "@/hooks/useApiServices";
 import wordmark from "@/assets/smmflix-wordmark.png";
-import { useSiteSettings, updateSiteSettings } from "@/hooks/useSiteSettings";
+import { useSiteSettings, updateSiteSettings, type SiteSettings } from "@/hooks/useSiteSettings";
 import { UsersAndBans } from "@/components/UsersAndBans";
 import {
   ArrowLeft,
@@ -45,17 +42,24 @@ import {
 const Admin = () => {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
-  const [settings, setSettings] = useState<AdminSettings>(getSettings);
-  const siteSettings = useSiteSettings();
+  const settings = useSiteSettings();
+  const siteSettings = settings; // alias for existing JSX
   const { categories, newServices } = useApiServices();
   const [visSearch, setVisSearch] = useState("");
   const [featSearch, setFeatSearch] = useState("");
   const [fmtSearch, setFmtSearch] = useState("");
   const [fmtSelectedId, setFmtSelectedId] = useState<string | null>(null);
   const [fmtCopied, setFmtCopied] = useState(false);
-  const [tiersInput, setTiersInput] = useState(() => getSettings().formatterTiers.join(", "));
+  const [tiersInput, setTiersInput] = useState("");
+  const [tiersInited, setTiersInited] = useState(false);
   const [newCode, setNewCode] = useState("");
   const [newCodePct, setNewCodePct] = useState<string>("10");
+
+  // Initialize the editable tiers input from the live settings once.
+  if (!tiersInited && settings.formatter_tiers && settings.formatter_tiers.length) {
+    setTiersInput(settings.formatter_tiers.join(", "));
+    setTiersInited(true);
+  }
 
   const allServices = useMemo(
     () =>
@@ -133,7 +137,7 @@ const Admin = () => {
   const fmtText = useMemo(() => {
     if (!fmtSelected) return "";
     const TIERS = resolvedTiers;
-    const rate = applyMarkup(fmtSelected.rate, settings.priceMarkupPercent);
+    const rate = applyMarkup(fmtSelected.rate, settings.price_markup_percent);
     // API rate is per 1000 units.
     const lines: string[] = [];
     lines.push(`SERVICE ID : ${fmtSelected.id}`);
@@ -151,7 +155,7 @@ const Admin = () => {
       lines.push(`${qty} ${unit} - ₹ ${price.toFixed(2)}`);
     }
     return lines.join("\n");
-  }, [fmtSelected, settings.priceMarkupPercent, resolvedTiers]);
+  }, [fmtSelected, settings.price_markup_percent, resolvedTiers]);
 
   const copyFmt = async () => {
     try {
@@ -210,40 +214,42 @@ const Admin = () => {
     );
   }
 
-  const update = <K extends keyof AdminSettings>(key: K, value: AdminSettings[K]) => {
-    const next = { ...settings, [key]: value };
-    setSettings(next);
-    saveSettings(next);
+  const update = <K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) => {
+    updateSiteSettings({ [key]: value } as Partial<SiteSettings>);
   };
 
-  const updateBanner = (patch: Partial<AdminSettings["banner"]>) => {
-    update("banner", { ...settings.banner, ...patch });
+  const updateBanner = (patch: { enabled?: boolean; text?: string; link?: string }) => {
+    const p: Partial<SiteSettings> = {};
+    if (patch.enabled !== undefined) p.banner_enabled = patch.enabled;
+    if (patch.text !== undefined) p.banner_text = patch.text;
+    if (patch.link !== undefined) p.banner_link = patch.link;
+    updateSiteSettings(p);
   };
 
   // Stats
   const totalCategories = categories.length;
   const totalServices = allServices.length;
   const hiddenCount =
-    settings.hiddenCategoryIds.length + settings.hiddenServiceIds.length;
+    settings.hidden_category_ids.length + settings.hidden_service_ids.length;
   const todayMs = Date.now() - 24 * 60 * 60 * 1000;
   const newToday = newServices.filter((n) => n.detectedAt >= todayMs).length;
 
   const toggleCategory = (id: string) => {
-    const set = new Set(settings.hiddenCategoryIds);
+    const set = new Set(settings.hidden_category_ids);
     if (set.has(id)) set.delete(id);
     else set.add(id);
-    update("hiddenCategoryIds", Array.from(set));
+    update("hidden_category_ids", Array.from(set));
   };
 
   const toggleService = (id: string) => {
-    const set = new Set(settings.hiddenServiceIds);
+    const set = new Set(settings.hidden_service_ids);
     if (set.has(id)) set.delete(id);
     else set.add(id);
-    update("hiddenServiceIds", Array.from(set));
+    update("hidden_service_ids", Array.from(set));
   };
 
   const toggleFeatured = (id: string) => {
-    const list = settings.featuredServiceIds.slice();
+    const list = settings.featured_service_ids.slice();
     const idx = list.indexOf(id);
     if (idx >= 0) {
       list.splice(idx, 1);
@@ -257,10 +263,10 @@ const Admin = () => {
       }
       list.push(id);
     }
-    update("featuredServiceIds", list);
+    update("featured_service_ids", list);
   };
 
-  const featuredItems = settings.featuredServiceIds
+  const featuredItems = settings.featured_service_ids
     .map((id) => allServices.find((s) => s.id === id))
     .filter(Boolean) as typeof allServices;
 
@@ -308,14 +314,14 @@ const Admin = () => {
             <h2 className="display text-xl font-black tracking-wider text-primary">CHEAPEST SERVICES</h2>
           </div>
           <p className="text-sm text-muted-foreground">
-            Top 15 lowest-priced services. <span className="text-foreground font-bold">Your rate</span> includes the {settings.priceMarkupPercent}% markup; <span className="text-foreground font-bold">Provider</span> is the raw API cost.
+            Top 15 lowest-priced services. <span className="text-foreground font-bold">Your rate</span> includes the {settings.price_markup_percent}% markup; <span className="text-foreground font-bold">Provider</span> is the raw API cost.
           </p>
           <div className="border border-border rounded-sm divide-y divide-border bg-card max-h-96 overflow-y-auto overscroll-contain">
             {cheapestServices.length === 0 && (
               <div className="p-4 text-sm text-muted-foreground">Loading…</div>
             )}
             {cheapestServices.map((s, i) => {
-              const yourRate = applyMarkup(s.rate, settings.priceMarkupPercent);
+              const yourRate = applyMarkup(s.rate, settings.price_markup_percent);
               const margin = yourRate - s.rate;
               return (
                 <div key={s.id} className="p-3 flex items-start gap-3">
@@ -423,18 +429,18 @@ const Admin = () => {
             <div>
               <div className="font-bold text-foreground">Banner</div>
               <div className="text-xs text-muted-foreground">
-                {settings.banner.enabled ? "ON — Showing on homepage." : "OFF — Hidden."}
+                {settings.banner_enabled ? "ON — Showing on homepage." : "OFF — Hidden."}
               </div>
             </div>
             <Switch
-              checked={settings.banner.enabled}
+              checked={settings.banner_enabled}
               onCheckedChange={(v) => updateBanner({ enabled: v })}
             />
           </div>
 
           <Field label="Banner Text">
             <Textarea
-              value={settings.banner.text}
+              value={settings.banner_text}
               onChange={(e) => updateBanner({ text: e.target.value })}
               placeholder="🎉 Holiday sale — 20% off all services this weekend!"
               rows={2}
@@ -444,7 +450,7 @@ const Admin = () => {
 
           <Field label="Optional Link (https://...)">
             <Input
-              value={settings.banner.link}
+              value={settings.banner_link}
               onChange={(e) => updateBanner({ link: e.target.value })}
               placeholder="https://t.me/yourchannel"
               className="bg-input border-border focus-visible:ring-primary rounded-sm"
@@ -461,15 +467,15 @@ const Admin = () => {
           <p className="text-sm text-muted-foreground">
             Global markup added on top of every API rate shown to customers. Set 0 to disable.
           </p>
-          <Field label={`Markup % (currently ${settings.priceMarkupPercent}%)`}>
+          <Field label={`Markup % (currently ${settings.price_markup_percent}%)`}>
             <Input
               type="number"
               min={0}
               max={500}
               step={1}
-              value={settings.priceMarkupPercent}
+              value={settings.price_markup_percent}
               onChange={(e) =>
-                update("priceMarkupPercent", Math.max(0, Number(e.target.value) || 0))
+                update("price_markup_percent", Math.max(0, Number(e.target.value) || 0))
               }
               className="bg-input border-border focus-visible:ring-primary rounded-sm"
             />
@@ -477,7 +483,7 @@ const Admin = () => {
           <div className="text-xs text-muted-foreground border border-border bg-muted/30 p-3 rounded-sm">
             Example: API rate ₹10 → customer sees{" "}
             <span className="text-primary font-bold">
-              ₹{applyMarkup(10, settings.priceMarkupPercent).toFixed(2)}
+              ₹{applyMarkup(10, settings.price_markup_percent).toFixed(2)}
             </span>
           </div>
         </section>
@@ -502,7 +508,7 @@ const Admin = () => {
                 <div className="p-4 text-sm text-muted-foreground">Loading…</div>
               )}
               {categories.map((c) => {
-                const hidden = settings.hiddenCategoryIds.includes(c.id);
+                const hidden = settings.hidden_category_ids.includes(c.id);
                 return (
                   <button
                     type="button"
@@ -549,7 +555,7 @@ const Admin = () => {
                   <div className="p-3 text-sm text-muted-foreground">No matches.</div>
                 )}
                 {visMatches.map((s) => {
-                  const hidden = settings.hiddenServiceIds.includes(s.id);
+                  const hidden = settings.hidden_service_ids.includes(s.id);
                   return (
                     <button
                       type="button"
@@ -574,12 +580,12 @@ const Admin = () => {
                 })}
               </div>
             )}
-            {settings.hiddenServiceIds.length > 0 && (
+            {settings.hidden_service_ids.length > 0 && (
               <div className="mt-2 text-[11px] text-muted-foreground">
-                {settings.hiddenServiceIds.length} service(s) hidden.{" "}
+                {settings.hidden_service_ids.length} service(s) hidden.{" "}
                 <button
                   type="button"
-                  onClick={() => update("hiddenServiceIds", [])}
+                  onClick={() => update("hidden_service_ids", [])}
                   className="text-primary hover:underline font-bold"
                 >
                   Clear all
@@ -597,7 +603,7 @@ const Admin = () => {
           </div>
           <p className="text-sm text-muted-foreground">
             Pick up to {FEATURED_MAX} services to highlight at the top of the homepage.
-            ({settings.featuredServiceIds.length}/{FEATURED_MAX})
+            ({settings.featured_service_ids.length}/{FEATURED_MAX})
           </p>
 
           {featuredItems.length > 0 && (
@@ -646,7 +652,7 @@ const Admin = () => {
                   <div className="p-3 text-sm text-muted-foreground">No matches.</div>
                 )}
                 {featMatches.map((s) => {
-                  const isFeatured = settings.featuredServiceIds.includes(s.id);
+                  const isFeatured = settings.featured_service_ids.includes(s.id);
                   return (
                     <button
                       type="button"
@@ -716,11 +722,11 @@ const Admin = () => {
                   toast({ title: "Enter a discount %" });
                   return;
                 }
-                if (settings.redeemCodes.some((c) => c.code === code)) {
+                if (settings.redeem_codes.some((c) => c.code === code)) {
                   toast({ title: "Code exists", description: "That code is already in the list." });
                   return;
                 }
-                update("redeemCodes", [...settings.redeemCodes, { code, percent: pct }]);
+                update("redeem_codes", [...settings.redeem_codes, { code, percent: pct }]);
                 setNewCode("");
                 setNewCodePct("10");
                 toast({ title: "Code added", description: `${code} — ${pct}% off` });
@@ -731,13 +737,13 @@ const Admin = () => {
             </Button>
           </div>
 
-          {settings.redeemCodes.length === 0 ? (
+          {settings.redeem_codes.length === 0 ? (
             <div className="text-xs text-muted-foreground border border-dashed border-border rounded-sm p-3 text-center">
               No codes yet.
             </div>
           ) : (
             <div className="border border-border rounded-sm divide-y divide-border bg-card">
-              {settings.redeemCodes.map((c) => (
+              {settings.redeem_codes.map((c) => (
                 <div key={c.code} className="flex items-center justify-between gap-3 p-3">
                   <div className="min-w-0">
                     <div className="text-sm font-black text-primary tracking-wider">{c.code}</div>
@@ -748,7 +754,7 @@ const Admin = () => {
                     onClick={() => {
                       update(
                         "redeemCodes",
-                        settings.redeemCodes.filter((x) => x.code !== c.code)
+                        settings.redeem_codes.filter((x) => x.code !== c.code)
                       );
                     }}
                     className="p-2 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
@@ -778,9 +784,9 @@ const Admin = () => {
                 <button
                   key={m}
                   type="button"
-                  onClick={() => update("tierMode", m)}
+                  onClick={() => update("tier_mode", m)}
                   className={`text-[11px] font-black uppercase tracking-widest rounded-sm py-2 border transition-colors ${
-                    settings.tierMode === m
+                    settings.tier_mode === m
                       ? "border-primary bg-primary/15 text-primary"
                       : "border-border bg-muted/30 text-muted-foreground hover:text-foreground"
                   }`}
@@ -791,7 +797,7 @@ const Admin = () => {
             </div>
           </Field>
 
-          {settings.tierMode === "manual" && (
+          {settings.tier_mode === "manual" && (
             <Field label="Quantity tiers (comma-separated)">
               <Input
                 value={tiersInput}
@@ -801,7 +807,7 @@ const Admin = () => {
                     .split(/[,\s]+/)
                     .map((t) => Number(t.trim()))
                     .filter((n) => Number.isFinite(n) && n > 0);
-                  if (parsed.length) update("formatterTiers", parsed);
+                  if (parsed.length) update("formatter_tiers", parsed);
                 }}
                 placeholder="100, 200, 500, 1000, 5000"
                 className="bg-input border-border focus-visible:ring-primary rounded-sm"
@@ -812,7 +818,7 @@ const Admin = () => {
                   type="button"
                   onClick={() => {
                     setTiersInput(DEFAULT_FORMATTER_TIERS.join(", "));
-                    update("formatterTiers", DEFAULT_FORMATTER_TIERS);
+                    update("formatter_tiers", DEFAULT_FORMATTER_TIERS);
                   }}
                   className="text-primary hover:underline font-bold uppercase tracking-wider"
                 >
@@ -822,58 +828,58 @@ const Admin = () => {
             </Field>
           )}
 
-          {settings.tierMode === "step" && (
+          {settings.tier_mode === "step" && (
             <div className="grid grid-cols-3 gap-2">
               <Field label="Min">
                 <Input
                   type="number"
-                  value={settings.tierMin}
-                  onChange={(e) => update("tierMin", Math.max(1, Number(e.target.value) || 1))}
+                  value={settings.tier_min}
+                  onChange={(e) => update("tier_min", Math.max(1, Number(e.target.value) || 1))}
                   className="bg-input border-border focus-visible:ring-primary rounded-sm"
                 />
               </Field>
               <Field label="Max">
                 <Input
                   type="number"
-                  value={settings.tierMax}
-                  onChange={(e) => update("tierMax", Math.max(1, Number(e.target.value) || 1))}
+                  value={settings.tier_max}
+                  onChange={(e) => update("tier_max", Math.max(1, Number(e.target.value) || 1))}
                   className="bg-input border-border focus-visible:ring-primary rounded-sm"
                 />
               </Field>
               <Field label="Step">
                 <Input
                   type="number"
-                  value={settings.tierStep}
-                  onChange={(e) => update("tierStep", Math.max(1, Number(e.target.value) || 1))}
+                  value={settings.tier_step}
+                  onChange={(e) => update("tier_step", Math.max(1, Number(e.target.value) || 1))}
                   className="bg-input border-border focus-visible:ring-primary rounded-sm"
                 />
               </Field>
             </div>
           )}
 
-          {settings.tierMode === "count" && (
+          {settings.tier_mode === "count" && (
             <div className="grid grid-cols-3 gap-2">
               <Field label="Min">
                 <Input
                   type="number"
-                  value={settings.tierMin}
-                  onChange={(e) => update("tierMin", Math.max(1, Number(e.target.value) || 1))}
+                  value={settings.tier_min}
+                  onChange={(e) => update("tier_min", Math.max(1, Number(e.target.value) || 1))}
                   className="bg-input border-border focus-visible:ring-primary rounded-sm"
                 />
               </Field>
               <Field label="Max">
                 <Input
                   type="number"
-                  value={settings.tierMax}
-                  onChange={(e) => update("tierMax", Math.max(1, Number(e.target.value) || 1))}
+                  value={settings.tier_max}
+                  onChange={(e) => update("tier_max", Math.max(1, Number(e.target.value) || 1))}
                   className="bg-input border-border focus-visible:ring-primary rounded-sm"
                 />
               </Field>
               <Field label="Count">
                 <Input
                   type="number"
-                  value={settings.tierCount}
-                  onChange={(e) => update("tierCount", Math.max(2, Math.min(100, Number(e.target.value) || 2)))}
+                  value={settings.tier_count}
+                  onChange={(e) => update("tier_count", Math.max(2, Math.min(100, Number(e.target.value) || 2)))}
                   className="bg-input border-border focus-visible:ring-primary rounded-sm"
                 />
               </Field>

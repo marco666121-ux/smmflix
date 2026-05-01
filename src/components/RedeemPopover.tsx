@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Tag, X, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthModal } from "@/components/AuthModal";
-import { useAdminSettings, findRedeemPercent } from "@/lib/adminSettings";
+import { findRedeemPercent } from "@/lib/adminSettings";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { toast } from "@/hooks/use-toast";
 
 type Applied = { code: string; percent: number };
@@ -18,7 +19,7 @@ type Props = {
 
 export const RedeemPopover = ({ applied, onApply, onClear }: Props) => {
   const { user, signOut } = useAuth();
-  const settings = useAdminSettings();
+  const settings = useSiteSettings();
   const [authOpen, setAuthOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
@@ -32,7 +33,7 @@ export const RedeemPopover = ({ applied, onApply, onClear }: Props) => {
   };
 
   const apply = () => {
-    const pct = findRedeemPercent(settings.redeemCodes, code);
+    const pct = findRedeemPercent(settings.redeem_codes, code);
     if (!pct) {
       toast({ title: "Invalid code" });
       return;

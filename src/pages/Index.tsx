@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useApiServices } from "@/hooks/useApiServices";
 import Guidelines from "@/components/Guidelines";
 import { PaymentModal } from "@/components/PaymentModal";
-import { useAdminSettings, applyMarkup, findRedeemPercent } from "@/lib/adminSettings";
+import { applyMarkup, findRedeemPercent } from "@/lib/adminSettings";
 import wordmark from "@/assets/smmflix-wordmark.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,18 +36,17 @@ const Index = () => {
   const [appliedRedeem, setAppliedRedeem] = useState<{ code: string; percent: number } | null>(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
-  const adminSettings = useAdminSettings();
   const siteSettings = useSiteSettings();
   const { categories: rawCategories, loading, error, newServices, clearNewServices } = useApiServices();
   const [notifOpen, setNotifOpen] = useState(false);
 
-  const markup = adminSettings.priceMarkupPercent;
+  const markup = siteSettings.price_markup_percent;
   const supportWa = `https://wa.me/${siteSettings.support_whatsapp || "918848490476"}`;
 
   // Apply markup + hide filters to the source-of-truth list
   const categories = useMemo(() => {
-    const hiddenCats = new Set(adminSettings.hiddenCategoryIds);
-    const hiddenSvcs = new Set(adminSettings.hiddenServiceIds);
+    const hiddenCats = new Set(siteSettings.hidden_category_ids);
+    const hiddenSvcs = new Set(siteSettings.hidden_service_ids);
     return rawCategories
       .filter((c) => !hiddenCats.has(c.id))
       .map((c) => ({
@@ -58,7 +57,7 @@ const Index = () => {
           .sort((a, b) => a.rate - b.rate),
       }))
       .filter((c) => c.services.length > 0);
-  }, [rawCategories, adminSettings.hiddenCategoryIds, adminSettings.hiddenServiceIds, markup]);
+  }, [rawCategories, siteSettings.hidden_category_ids, siteSettings.hidden_service_ids, markup]);
 
   const category = useMemo(
     () => categories.find((c) => c.id === categoryId),
@@ -80,10 +79,10 @@ const Index = () => {
 
   // Featured items (preserve admin order, filter out hidden / missing)
   const featuredItems = useMemo(() => {
-    return adminSettings.featuredServiceIds
+    return siteSettings.featured_service_ids
       .map((id) => allServices.find((s) => s.id === id))
       .filter(Boolean) as typeof allServices;
-  }, [adminSettings.featuredServiceIds, allServices]);
+  }, [siteSettings.featured_service_ids, allServices]);
 
   const searchResults = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -284,22 +283,22 @@ const Index = () => {
       </header>
 
       {/* Banner */}
-      {adminSettings.banner.enabled && adminSettings.banner.text.trim() && (
+      {siteSettings.banner_enabled && siteSettings.banner_text.trim() && (
         <div className="border-b border-primary/30 bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15">
           <div className="container py-2.5 flex items-center gap-2 justify-center text-center">
             <Megaphone className="h-4 w-4 text-primary shrink-0" />
-            {adminSettings.banner.link ? (
+            {siteSettings.banner_link ? (
               <a
-                href={adminSettings.banner.link}
+                href={siteSettings.banner_link}
                 target="_blank"
                 rel="noreferrer"
                 className="text-sm font-bold text-foreground hover:text-primary underline-offset-4 hover:underline break-words"
               >
-                {adminSettings.banner.text}
+                {siteSettings.banner_text}
               </a>
             ) : (
               <span className="text-sm font-bold text-foreground break-words">
-                {adminSettings.banner.text}
+                {siteSettings.banner_text}
               </span>
             )}
           </div>
