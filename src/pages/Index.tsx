@@ -370,7 +370,17 @@ const Index = () => {
           <div className="flex items-center gap-3 mb-2">
             <div className="h-1 w-10 bg-primary rounded-full" />
             <h2 className="display text-3xl font-black tracking-wide">NEW ORDER</h2>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              className="ml-auto h-9 w-9 grid place-items-center rounded-full border border-border bg-card hover:border-primary hover:text-primary transition-colors"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
           </div>
+
 
           {/* Search + Cheapest */}
           <div className="space-y-2">
