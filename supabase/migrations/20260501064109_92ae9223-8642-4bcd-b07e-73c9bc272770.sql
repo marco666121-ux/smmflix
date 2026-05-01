@@ -1,0 +1,15 @@
+ALTER TABLE public.site_settings
+  ADD COLUMN IF NOT EXISTS price_markup_percent numeric NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS banner_enabled boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS banner_text text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS banner_link text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS hidden_category_ids jsonb NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS hidden_service_ids jsonb NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS featured_service_ids jsonb NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS formatter_tiers jsonb NOT NULL DEFAULT '[100,200,300,400,500,600,700,800,900,1000,2000,3000,5000,10000]'::jsonb,
+  ADD COLUMN IF NOT EXISTS tier_mode text NOT NULL DEFAULT 'manual',
+  ADD COLUMN IF NOT EXISTS tier_min integer NOT NULL DEFAULT 100,
+  ADD COLUMN IF NOT EXISTS tier_max integer NOT NULL DEFAULT 10000,
+  ADD COLUMN IF NOT EXISTS tier_step integer NOT NULL DEFAULT 100,
+  ADD COLUMN IF NOT EXISTS tier_count integer NOT NULL DEFAULT 10,
+  ADD COLUMN IF NOT EXISTS redeem_codes jsonb NOT NULL DEFAULT '[]'::jsonb;
