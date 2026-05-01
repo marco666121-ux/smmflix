@@ -11,16 +11,13 @@ import {
   DEFAULT_FORMATTER_TIERS,
   FEATURED_MAX,
   applyMarkup,
-  getSettings,
   resolveTiers,
-  saveSettings,
-  type AdminSettings,
   type RedeemCode,
   type TierMode,
 } from "@/lib/adminSettings";
 import { useApiServices } from "@/hooks/useApiServices";
 import wordmark from "@/assets/smmflix-wordmark.png";
-import { useSiteSettings, updateSiteSettings } from "@/hooks/useSiteSettings";
+import { useSiteSettings, updateSiteSettings, type SiteSettings } from "@/hooks/useSiteSettings";
 import { UsersAndBans } from "@/components/UsersAndBans";
 import {
   ArrowLeft,
@@ -45,17 +42,24 @@ import {
 const Admin = () => {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
-  const [settings, setSettings] = useState<AdminSettings>(getSettings);
-  const siteSettings = useSiteSettings();
+  const settings = useSiteSettings();
+  const siteSettings = settings; // alias for existing JSX
   const { categories, newServices } = useApiServices();
   const [visSearch, setVisSearch] = useState("");
   const [featSearch, setFeatSearch] = useState("");
   const [fmtSearch, setFmtSearch] = useState("");
   const [fmtSelectedId, setFmtSelectedId] = useState<string | null>(null);
   const [fmtCopied, setFmtCopied] = useState(false);
-  const [tiersInput, setTiersInput] = useState(() => getSettings().formatterTiers.join(", "));
+  const [tiersInput, setTiersInput] = useState("");
+  const [tiersInited, setTiersInited] = useState(false);
   const [newCode, setNewCode] = useState("");
   const [newCodePct, setNewCodePct] = useState<string>("10");
+
+  // Initialize the editable tiers input from the live settings once.
+  if (!tiersInited && settings.formatter_tiers && settings.formatter_tiers.length) {
+    setTiersInput(settings.formatter_tiers.join(", "));
+    setTiersInited(true);
+  }
 
   const allServices = useMemo(
     () =>
@@ -133,7 +137,7 @@ const Admin = () => {
   const fmtText = useMemo(() => {
     if (!fmtSelected) return "";
     const TIERS = resolvedTiers;
-    const rate = applyMarkup(fmtSelected.rate, settings.priceMarkupPercent);
+    const rate = applyMarkup(fmtSelected.rate, settings.price_markup_percent);
     // API rate is per 1000 units.
     const lines: string[] = [];
     lines.push(`SERVICE ID : ${fmtSelected.id}`);
@@ -151,7 +155,7 @@ const Admin = () => {
       lines.push(`${qty} ${unit} - ₹ ${price.toFixed(2)}`);
     }
     return lines.join("\n");
-  }, [fmtSelected, settings.priceMarkupPercent, resolvedTiers]);
+  }, [fmtSelected, settings.price_markup_percent, resolvedTiers]);
 
   const copyFmt = async () => {
     try {
@@ -210,14 +214,16 @@ const Admin = () => {
     );
   }
 
-  const update = <K extends keyof AdminSettings>(key: K, value: AdminSettings[K]) => {
-    const next = { ...settings, [key]: value };
-    setSettings(next);
-    saveSettings(next);
+  const update = <K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) => {
+    updateSiteSettings({ [key]: value } as Partial<SiteSettings>);
   };
 
-  const updateBanner = (patch: Partial<AdminSettings["banner"]>) => {
-    update("banner", { ...settings.banner, ...patch });
+  const updateBanner = (patch: { enabled?: boolean; text?: string; link?: string }) => {
+    const p: Partial<SiteSettings> = {};
+    if (patch.enabled !== undefined) p.banner_enabled = patch.enabled;
+    if (patch.text !== undefined) p.banner_text = patch.text;
+    if (patch.link !== undefined) p.banner_link = patch.link;
+    updateSiteSettings(p);
   };
 
   // Stats
