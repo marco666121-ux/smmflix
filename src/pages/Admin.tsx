@@ -753,7 +753,7 @@ const Admin = () => {
                     type="button"
                     onClick={() => {
                       update(
-                        "redeemCodes",
+                        "redeem_codes",
                         settings.redeem_codes.filter((x) => x.code !== c.code)
                       );
                     }}
