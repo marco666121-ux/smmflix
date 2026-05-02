@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import type { Category, Service } from "@/data/services";
 
 const API_URL = "https://www.prime-spot.store/api/services";
-const SEEN_KEY = "smmflix.seenServiceIds.v1";
-const NEW_KEY = "smmflix.newServices.v1";
+const SNAPSHOT_KEY = "smmflix.serviceSnapshot.v2"; // { id: { rate, name, category } }
+const UPDATES_KEY = "smmflix.serviceUpdates.v2";    // ServiceUpdate[] with detectedAt
+const RETENTION_MS = 24 * 60 * 60 * 1000;            // 24 hours
 
 type ApiService = {
   service: string | number;
@@ -16,19 +17,23 @@ type ApiService = {
   desc?: string;
 };
 
-export type NewServiceEntry = {
+export type ServiceUpdate = {
   id: string;
   name: string;
   category: string;
-  rate: number;
+  kind: "new" | "increase" | "decrease";
+  oldRate: number | null;
+  newRate: number;
   detectedAt: number;
 };
+
+type Snapshot = Record<string, { rate: number; name: string; category: string }>;
 
 type State = {
   categories: Category[];
   loading: boolean;
   error: string | null;
-  newServices: NewServiceEntry[];
+  updates: ServiceUpdate[];
 };
 
 // Normalize stylized unicode (mathematical bold etc.) into plain ASCII for
@@ -49,9 +54,6 @@ const toPlain = (str: string): string => {
 
 const sortKey = (str: string) => toPlain(str).toLowerCase().trim();
 
-// Manual category order requested by admin. Match is done on the normalized
-// (plain-ASCII, lowercased, trimmed) name so stylized unicode variants in the
-// API still line up with these entries.
 const MANUAL_CATEGORY_ORDER: string[] = [
   "Winter Sale 🥶",
   "IG Followers 100% Old Account+ 15 Post ( Non - Drop ) ( Updated on 25/1/2026 )",
@@ -175,7 +177,6 @@ function normalize(list: ApiService[]): Category[] {
       description: s.description ?? s.desc ?? "",
     });
   }
-  // Build a rank lookup from the manual order using the normalized key.
   const rank = new Map<string, number>();
   MANUAL_CATEGORY_ORDER.forEach((n, i) => rank.set(sortKey(n), i));
   const names = Array.from(map.keys()).sort((a, b) => {
@@ -184,7 +185,6 @@ function normalize(list: ApiService[]): Category[] {
     if (ra !== undefined && rb !== undefined) return ra - rb;
     if (ra !== undefined) return -1;
     if (rb !== undefined) return 1;
-    // Anything not in the manual list goes to the end, alphabetically.
     return sortKey(a).localeCompare(sortKey(b));
   });
   return names.map((name, i) => ({
@@ -211,51 +211,71 @@ function writeJSON(key: string, value: unknown) {
   }
 }
 
-function detectNew(
+function detectChanges(
   cats: Category[],
-  prevSeen: string[],
-  prevNew: NewServiceEntry[]
-): { newServices: NewServiceEntry[]; allIds: string[] } {
-  const allIds: string[] = [];
-  const flat: Service[] = [];
+  prevSnap: Snapshot,
+  prevUpdates: ServiceUpdate[]
+): { updates: ServiceUpdate[]; snapshot: Snapshot } {
+  const snapshot: Snapshot = {};
+  const newDetections: ServiceUpdate[] = [];
+  const now = Date.now();
+  const isFirstLoad = Object.keys(prevSnap).length === 0;
+
   for (const c of cats) {
     for (const s of c.services) {
-      allIds.push(s.id);
-      flat.push(s);
+      snapshot[s.id] = { rate: s.rate, name: s.name, category: s.category };
+      if (isFirstLoad) continue;
+      const prev = prevSnap[s.id];
+      if (!prev) {
+        newDetections.push({
+          id: s.id,
+          name: s.name,
+          category: s.category,
+          kind: "new",
+          oldRate: null,
+          newRate: s.rate,
+          detectedAt: now,
+        });
+      } else if (prev.rate !== s.rate) {
+        newDetections.push({
+          id: s.id,
+          name: s.name,
+          category: s.category,
+          kind: s.rate > prev.rate ? "increase" : "decrease",
+          oldRate: prev.rate,
+          newRate: s.rate,
+          detectedAt: now,
+        });
+      }
     }
   }
-  // First load: don't flood with hundreds of "new" items.
-  if (prevSeen.length === 0) {
-    return { newServices: prevNew, allIds };
+
+  // Merge: keep updates from the last 24h, replace any older entry for same id
+  const cutoff = now - RETENTION_MS;
+  const merged = [...newDetections, ...prevUpdates.filter((u) => u.detectedAt >= cutoff)];
+  // Dedup: latest entry per id wins (newDetections come first => take first occurrence)
+  const seen = new Set<string>();
+  const updates: ServiceUpdate[] = [];
+  for (const u of merged) {
+    const key = `${u.id}-${u.detectedAt}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    updates.push(u);
   }
-  const seenSet = new Set(prevSeen);
-  const now = Date.now();
-  const additions: NewServiceEntry[] = flat
-    .filter((s) => !seenSet.has(s.id))
-    .map((s) => ({
-      id: s.id,
-      name: s.name,
-      category: s.category,
-      rate: s.rate,
-      detectedAt: now,
-    }));
-  // Merge with existing unread, dedupe by id, cap to 50, newest first
-  const merged = [...additions, ...prevNew];
-  const dedup = new Map<string, NewServiceEntry>();
-  for (const n of merged) if (!dedup.has(n.id)) dedup.set(n.id, n);
-  const newServices = Array.from(dedup.values())
-    .sort((a, b) => b.detectedAt - a.detectedAt)
-    .slice(0, 50);
-  return { newServices, allIds };
+  // Sort newest first, cap to 100
+  updates.sort((a, b) => b.detectedAt - a.detectedAt);
+  return { updates: updates.slice(0, 100), snapshot };
 }
 
-export function useApiServices(): State & { clearNewServices: () => void } {
-  const [state, setState] = useState<State>({
+export function useApiServices(): State & { clearUpdates: () => void } {
+  const [state, setState] = useState<State>(() => ({
     categories: [],
     loading: true,
     error: null,
-    newServices: readJSON<NewServiceEntry[]>(NEW_KEY, []),
-  });
+    updates: readJSON<ServiceUpdate[]>(UPDATES_KEY, []).filter(
+      (u) => Date.now() - u.detectedAt < RETENTION_MS
+    ),
+  }));
 
   useEffect(() => {
     let cancelled = false;
@@ -266,24 +286,15 @@ export function useApiServices(): State & { clearNewServices: () => void } {
         const data: ApiService[] = await res.json();
         if (cancelled) return;
         const cats = normalize(data);
-        const prevSeen = readJSON<string[]>(SEEN_KEY, []);
-        const prevNew = readJSON<NewServiceEntry[]>(NEW_KEY, []);
-        const { newServices, allIds } = detectNew(cats, prevSeen, prevNew);
-        writeJSON(SEEN_KEY, allIds);
-        writeJSON(NEW_KEY, newServices);
-        setState({
-          categories: cats,
-          loading: false,
-          error: null,
-          newServices,
-        });
+        const prevSnap = readJSON<Snapshot>(SNAPSHOT_KEY, {});
+        const prevUpdates = readJSON<ServiceUpdate[]>(UPDATES_KEY, []);
+        const { updates, snapshot } = detectChanges(cats, prevSnap, prevUpdates);
+        writeJSON(SNAPSHOT_KEY, snapshot);
+        writeJSON(UPDATES_KEY, updates);
+        setState({ categories: cats, loading: false, error: null, updates });
       } catch (e: any) {
         if (cancelled) return;
-        setState((s) => ({
-          ...s,
-          loading: false,
-          error: e?.message ?? "Failed to load",
-        }));
+        setState((s) => ({ ...s, loading: false, error: e?.message ?? "Failed to load" }));
       }
     })();
     return () => {
@@ -291,12 +302,26 @@ export function useApiServices(): State & { clearNewServices: () => void } {
     };
   }, []);
 
-  const clearNewServices = () => {
-    writeJSON(NEW_KEY, []);
-    setState((s) => ({ ...s, newServices: [] }));
+  // Periodically prune expired updates (every 5 min)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setState((s) => {
+        const cutoff = Date.now() - RETENTION_MS;
+        const filtered = s.updates.filter((u) => u.detectedAt >= cutoff);
+        if (filtered.length === s.updates.length) return s;
+        writeJSON(UPDATES_KEY, filtered);
+        return { ...s, updates: filtered };
+      });
+    }, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const clearUpdates = () => {
+    writeJSON(UPDATES_KEY, []);
+    setState((s) => ({ ...s, updates: [] }));
   };
 
-  return { ...state, clearNewServices };
+  return { ...state, clearUpdates };
 }
 
 export const supportWhatsapp = "https://wa.me/918848490476";
