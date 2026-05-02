@@ -24,6 +24,7 @@ import { toast } from "@/hooks/use-toast";
 import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, TrendingUp, ArrowUp, ArrowDown, Clock, History, Link2, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RedeemPopover } from "@/components/RedeemPopover";
+import { ContactDropdown } from "@/components/ContactDropdown";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useTheme } from "@/hooks/useTheme";
 
