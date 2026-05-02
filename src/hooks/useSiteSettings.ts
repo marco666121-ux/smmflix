@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type RedeemCode = { code: string; percent: number };
 export type TierMode = "manual" | "step" | "count";
+export type ContactLink = { name: string; url: string };
+export type ContactColor = "emerald" | "red" | "blue" | "purple" | "amber" | "slate";
 
 export type SiteSettings = {
   id: string;
@@ -25,6 +27,9 @@ export type SiteSettings = {
   tier_step: number;
   tier_count: number;
   redeem_codes: RedeemCode[];
+  contact_label: string;
+  contact_button_color: ContactColor;
+  contact_links: ContactLink[];
 };
 
 export const DEFAULT_FORMATTER_TIERS = [
@@ -51,6 +56,9 @@ const DEFAULT: SiteSettings = {
   tier_step: 100,
   tier_count: 10,
   redeem_codes: [],
+  contact_label: "Contact",
+  contact_button_color: "emerald",
+  contact_links: [{ name: "WhatsApp Chat", url: "https://wa.me/918848490476" }],
 };
 
 const asArr = <T,>(v: any, fallback: T[]): T[] =>
@@ -74,6 +82,16 @@ const normalize = (raw: any): SiteSettings => ({
     .filter((c) => c.code.length > 0),
   tier_mode: (["manual", "step", "count"].includes(raw?.tier_mode) ? raw.tier_mode : "manual") as TierMode,
   price_markup_percent: Number(raw?.price_markup_percent) || 0,
+  contact_label: typeof raw?.contact_label === "string" && raw.contact_label.trim() ? raw.contact_label : "Contact",
+  contact_button_color: (["emerald", "red", "blue", "purple", "amber", "slate"].includes(raw?.contact_button_color)
+    ? raw.contact_button_color
+    : "emerald") as ContactColor,
+  contact_links: asArr<any>(raw?.contact_links, [])
+    .map((c) => ({
+      name: String(c?.name ?? "").trim(),
+      url: String(c?.url ?? "").trim(),
+    }))
+    .filter((c) => c.name && c.url),
 });
 
 let cache: SiteSettings | null = null;
