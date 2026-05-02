@@ -44,7 +44,7 @@ const Admin = () => {
   const [authed, setAuthed] = useState(false);
   const settings = useSiteSettings();
   const siteSettings = settings; // alias for existing JSX
-  const { categories, newServices } = useApiServices();
+  const { categories, updates } = useApiServices();
   const [visSearch, setVisSearch] = useState("");
   const [featSearch, setFeatSearch] = useState("");
   const [fmtSearch, setFmtSearch] = useState("");
@@ -232,7 +232,7 @@ const Admin = () => {
   const hiddenCount =
     settings.hidden_category_ids.length + settings.hidden_service_ids.length;
   const todayMs = Date.now() - 24 * 60 * 60 * 1000;
-  const newToday = newServices.filter((n) => n.detectedAt >= todayMs).length;
+  const newToday = updates.filter((n) => n.detectedAt >= todayMs && n.kind === "new").length;
 
   const toggleCategory = (id: string) => {
     const set = new Set(settings.hidden_category_ids);
