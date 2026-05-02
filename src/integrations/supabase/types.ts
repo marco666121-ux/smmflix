@@ -100,6 +100,9 @@ export type Database = {
           banner_enabled: boolean
           banner_link: string
           banner_text: string
+          contact_button_color: string
+          contact_label: string
+          contact_links: Json
           featured_service_ids: Json
           formatter_tiers: Json
           hidden_category_ids: Json
@@ -122,6 +125,9 @@ export type Database = {
           banner_enabled?: boolean
           banner_link?: string
           banner_text?: string
+          contact_button_color?: string
+          contact_label?: string
+          contact_links?: Json
           featured_service_ids?: Json
           formatter_tiers?: Json
           hidden_category_ids?: Json
@@ -144,6 +150,9 @@ export type Database = {
           banner_enabled?: boolean
           banner_link?: string
           banner_text?: string
+          contact_button_color?: string
+          contact_label?: string
+          contact_links?: Json
           featured_service_ids?: Json
           formatter_tiers?: Json
           hidden_category_ids?: Json

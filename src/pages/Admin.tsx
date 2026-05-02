@@ -415,6 +415,116 @@ const Admin = () => {
           </Field>
         </section>
 
+        {/* Contact Button */}
+        <section className="card-surface border border-border/60 rounded-sm p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Megaphone className="h-5 w-5 text-primary" />
+            <h2 className="display text-xl font-black tracking-wider text-primary">CONTACT BUTTON</h2>
+          </div>
+          <p className="text-xs text-muted-foreground -mt-2">
+            Customize the header Contact button. Add multiple links (e.g., WhatsApp Group, Personal Chat) and they will appear in a dropdown.
+          </p>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="Button Text">
+              <Input
+                value={siteSettings.contact_label}
+                onChange={(e) => updateSiteSettings({ contact_label: e.target.value })}
+                placeholder="Contact"
+                className="bg-input border-border focus-visible:ring-primary rounded-sm"
+              />
+            </Field>
+            <Field label="Button Color">
+              <select
+                value={siteSettings.contact_button_color}
+                onChange={(e) =>
+                  updateSiteSettings({ contact_button_color: e.target.value as any })
+                }
+                className="h-10 w-full rounded-sm border border-border bg-input px-3 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              >
+                <option value="emerald">Green (WhatsApp)</option>
+                <option value="red">Red</option>
+                <option value="blue">Blue</option>
+                <option value="purple">Purple</option>
+                <option value="amber">Amber</option>
+                <option value="slate">Neutral</option>
+              </select>
+            </Field>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">
+                Dropdown Links
+              </Label>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  updateSiteSettings({
+                    contact_links: [
+                      ...siteSettings.contact_links,
+                      { name: "", url: "" },
+                    ],
+                  })
+                }
+                className="h-8 rounded-sm"
+              >
+                + Add Link
+              </Button>
+            </div>
+
+            {siteSettings.contact_links.length === 0 && (
+              <div className="text-xs text-muted-foreground border border-dashed border-border rounded-sm p-4 text-center">
+                No links yet. Add at least one link (e.g., WhatsApp Chat).
+              </div>
+            )}
+
+            <div className="space-y-2">
+              {siteSettings.contact_links.map((link, i) => (
+                <div
+                  key={i}
+                  className="grid grid-cols-1 sm:grid-cols-[1fr_2fr_auto] gap-2 items-center border border-border bg-muted/30 p-2 rounded-sm"
+                >
+                  <Input
+                    value={link.name}
+                    onChange={(e) => {
+                      const next = [...siteSettings.contact_links];
+                      next[i] = { ...next[i], name: e.target.value };
+                      updateSiteSettings({ contact_links: next });
+                    }}
+                    placeholder="WhatsApp Group"
+                    className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                  />
+                  <Input
+                    value={link.url}
+                    onChange={(e) => {
+                      const next = [...siteSettings.contact_links];
+                      next[i] = { ...next[i], url: e.target.value };
+                      updateSiteSettings({ contact_links: next });
+                    }}
+                    placeholder="https://wa.me/91... or https://chat.whatsapp.com/..."
+                    className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => {
+                      const next = siteSettings.contact_links.filter((_, j) => j !== i);
+                      updateSiteSettings({ contact_links: next });
+                    }}
+                    className="h-9 rounded-sm"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Users & Bans */}
         <UsersAndBans />
 
