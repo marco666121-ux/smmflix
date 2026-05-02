@@ -212,21 +212,18 @@ const Index = () => {
           <div className="flex items-center gap-2 sm:gap-3">
             <Popover
               open={notifOpen}
-              onOpenChange={(o) => {
-                setNotifOpen(o);
-                if (!o && newServices.length > 0) clearNewServices();
-              }}
+              onOpenChange={(o) => setNotifOpen(o)}
             >
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  aria-label="What's new"
-                  className="relative h-10 w-10 grid place-items-center rounded border border-border hover:border-primary text-foreground hover:text-primary transition-colors"
+                  aria-label="Service Updates"
+                  className="relative h-10 w-10 grid place-items-center rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/60 transition-colors"
                 >
                   <Bell className="h-5 w-5" />
-                  {newServices.length > 0 && (
+                  {updates.length > 0 && (
                     <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-primary text-primary-foreground text-[10px] font-black shadow-[0_0_10px_hsl(var(--primary)/0.7)]">
-                      {newServices.length > 99 ? "99+" : newServices.length}
+                      {updates.length > 99 ? "99+" : updates.length}
                     </span>
                   )}
                 </button>
@@ -234,35 +231,107 @@ const Index = () => {
               <PopoverContent
                 align="end"
                 sideOffset={8}
-                className="w-[min(92vw,360px)] p-0 bg-popover border-border"
+                className="w-[min(94vw,380px)] p-0 bg-popover border-border rounded-2xl overflow-hidden shadow-2xl"
               >
-                <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/50">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <span className="text-xs font-black uppercase tracking-widest">What's New</span>
+                    <History className="h-4 w-4 text-emerald-400" />
+                    <span className="text-sm font-bold text-emerald-400">Service Updates</span>
                   </div>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
-                    {newServices.length} update{newServices.length === 1 ? "" : "s"}
-                  </span>
-                </div>
-                <div className="max-h-[60vh] overflow-y-auto overscroll-contain divide-y divide-border [-webkit-overflow-scrolling:touch]">
-                  {newServices.length === 0 ? (
-                    <div className="p-6 text-center text-sm text-muted-foreground">
-                      You're all caught up.
-                    </div>
-                  ) : (
-                    newServices.map((n) => (
-                      <div key={n.id} className="p-3">
-                        <div className="flex items-center justify-between gap-2 mb-1">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-primary">New service</span>
-                          <span className="text-xs font-black text-foreground">₹ {n.rate.toFixed(2)}</span>
-                        </div>
-                        <div className="text-sm font-semibold leading-snug mb-1 break-words">{n.name}</div>
-                        <div className="text-[11px] text-muted-foreground uppercase tracking-wider break-words">{n.category}</div>
-                      </div>
-                    ))
+                  {updates.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={clearUpdates}
+                      className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground font-bold"
+                    >
+                      Clear
+                    </button>
                   )}
                 </div>
+                <div className="max-h-[60vh] overflow-y-auto overscroll-contain divide-y divide-border [-webkit-overflow-scrolling:touch]">
+                  {updates.length === 0 ? (
+                    <div className="p-6 text-center text-sm text-muted-foreground">
+                      No updates in the last 24 hours.
+                    </div>
+                  ) : (
+                    updates.map((u) => {
+                      const date = new Date(u.detectedAt);
+                      const dateLabel = date.toLocaleString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      });
+                      const isNew = u.kind === "new";
+                      const isUp = u.kind === "increase";
+                      const arrowColor = isNew
+                        ? "bg-blue-500/15 text-blue-400 border-blue-500/40"
+                        : isUp
+                        ? "bg-rose-500/15 text-rose-400 border-rose-500/40"
+                        : "bg-emerald-500/15 text-emerald-400 border-emerald-500/40";
+                      const priceColor = isNew
+                        ? "text-blue-400"
+                        : isUp
+                        ? "text-rose-400"
+                        : "text-emerald-400";
+                      const idColor = isNew
+                        ? "text-blue-400"
+                        : isUp
+                        ? "text-rose-400"
+                        : "text-emerald-400";
+                      return (
+                        <div key={`${u.id}-${u.detectedAt}`} className="px-3 py-3">
+                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-2">
+                            <Clock className="h-3 w-3" />
+                            <span>{dateLabel}</span>
+                          </div>
+                          <div className="flex gap-3">
+                            <div className={cn("h-9 w-9 shrink-0 grid place-items-center rounded-full border", arrowColor)}>
+                              {isNew ? (
+                                <Sparkles className="h-4 w-4" />
+                              ) : isUp ? (
+                                <ArrowUp className="h-4 w-4" strokeWidth={3} />
+                              ) : (
+                                <ArrowDown className="h-4 w-4" strokeWidth={3} />
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className={cn("text-sm font-black mb-0.5", idColor)}>#{u.id}</div>
+                              <div className="text-[13px] font-semibold leading-snug text-foreground break-words">
+                                {u.name}
+                              </div>
+                              <div className={cn("mt-1.5 text-[13px] font-bold flex items-center gap-1.5 flex-wrap", priceColor)}>
+                                {isNew ? (
+                                  <>
+                                    <Sparkles className="h-3.5 w-3.5" />
+                                    <span>₹{u.newRate.toFixed(4)}</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    {isUp ? (
+                                      <ArrowUp className="h-3.5 w-3.5" strokeWidth={3} />
+                                    ) : (
+                                      <ArrowDown className="h-3.5 w-3.5" strokeWidth={3} />
+                                    )}
+                                    <span>₹{(u.oldRate ?? 0).toFixed(4)}</span>
+                                    <span className="opacity-70">→</span>
+                                    <span>₹{u.newRate.toFixed(4)}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+                {updates.length > 0 && (
+                  <div className="px-4 py-2 text-[10px] text-center text-muted-foreground uppercase tracking-widest border-t border-border bg-card/40">
+                    Updates are kept for 24 hours
+                  </div>
+                )}
               </PopoverContent>
             </Popover>
             <RedeemPopover
