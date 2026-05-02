@@ -21,7 +21,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { toast } from "@/hooks/use-toast";
-import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, Link2, Sun, Moon } from "lucide-react";
+import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, TrendingUp, ArrowUp, ArrowDown, Clock, History, Link2, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RedeemPopover } from "@/components/RedeemPopover";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -39,7 +39,7 @@ const Index = () => {
   const [categoryOpen, setCategoryOpen] = useState(false);
   const siteSettings = useSiteSettings();
   const { theme, toggleTheme } = useTheme();
-  const { categories: rawCategories, loading, error, newServices, clearNewServices } = useApiServices();
+  const { categories: rawCategories, loading, error, updates, clearUpdates } = useApiServices();
   const [notifOpen, setNotifOpen] = useState(false);
 
   const markup = siteSettings.price_markup_percent;
