@@ -202,7 +202,7 @@ const Index = () => {
               <img
                 src={wordmark}
                 alt="SMMFLIX"
-                className="h-9 sm:h-11 object-contain drop-shadow-[0_0_18px_hsl(var(--primary)/0.45)]"
+                className={cn("h-9 sm:h-11 object-contain", theme === "dark" && "drop-shadow-[0_0_18px_hsl(var(--primary)/0.45)]")}
               />
               <div className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mt-1">
                 Premium Services. Premium Results.
@@ -218,7 +218,7 @@ const Index = () => {
                 <button
                   type="button"
                   aria-label="Service Updates"
-                  className="relative h-10 w-10 grid place-items-center rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/60 transition-colors"
+                  className="relative h-10 w-10 grid place-items-center rounded-full border border-border bg-muted/40 text-foreground hover:bg-muted hover:border-foreground/40 transition-colors"
                 >
                   <Bell className="h-5 w-5" />
                   {updates.length > 0 && (
@@ -384,7 +384,7 @@ const Index = () => {
           <img
             src={wordmark}
             alt="SMMFLIX"
-            className="h-20 sm:h-32 object-contain mb-4 drop-shadow-[0_0_40px_hsl(var(--primary)/0.6)]"
+            className={cn("h-20 sm:h-32 object-contain mb-4", theme === "dark" && "drop-shadow-[0_0_40px_hsl(var(--primary)/0.6)]")}
           />
           <p className="text-muted-foreground max-w-xl mx-auto text-base sm:text-lg uppercase tracking-[0.15em] font-medium">
             Premium Services · Premium Results
