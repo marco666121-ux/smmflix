@@ -414,7 +414,7 @@ const Admin = () => {
           <Field label="UPI ID">
             <Input
               value={siteSettings.upi_id}
-              onChange={(e) => updateSiteSettings({ upi_id: e.target.value })}
+              onChange={(e) => patch({ upi_id: e.target.value })}
               placeholder="yourname@okaxis"
               className="bg-input border-border focus-visible:ring-primary rounded-sm"
             />
@@ -423,7 +423,7 @@ const Admin = () => {
           <Field label="Payee Name">
             <Input
               value={siteSettings.payee_name}
-              onChange={(e) => updateSiteSettings({ payee_name: e.target.value })}
+              onChange={(e) => patch({ payee_name: e.target.value })}
               placeholder="SMMFLIX"
               className="bg-input border-border focus-visible:ring-primary rounded-sm"
             />
@@ -433,7 +433,7 @@ const Admin = () => {
             <Input
               value={siteSettings.support_whatsapp}
               onChange={(e) =>
-                updateSiteSettings({ support_whatsapp: e.target.value.replace(/[^\d]/g, "") })
+                patch({ support_whatsapp: e.target.value.replace(/[^\d]/g, "") })
               }
               placeholder="918848490476"
               inputMode="numeric"
@@ -459,7 +459,7 @@ const Admin = () => {
             <Field label="Button Text">
               <Input
                 value={siteSettings.contact_label}
-                onChange={(e) => updateSiteSettings({ contact_label: e.target.value })}
+                onChange={(e) => patch({ contact_label: e.target.value })}
                 placeholder="Contact"
                 className="bg-input border-border focus-visible:ring-primary rounded-sm"
               />
@@ -468,7 +468,7 @@ const Admin = () => {
               <select
                 value={siteSettings.contact_button_color}
                 onChange={(e) =>
-                  updateSiteSettings({ contact_button_color: e.target.value as any })
+                  patch({ contact_button_color: e.target.value as any })
                 }
                 className="h-10 w-full rounded-sm border border-border bg-input px-3 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               >
@@ -492,7 +492,7 @@ const Admin = () => {
                 size="sm"
                 variant="outline"
                 onClick={() =>
-                  updateSiteSettings({
+                  patch({
                     contact_links: [
                       ...siteSettings.contact_links,
                       { name: "", url: "" },
@@ -522,7 +522,7 @@ const Admin = () => {
                     onChange={(e) => {
                       const next = [...siteSettings.contact_links];
                       next[i] = { ...next[i], name: e.target.value };
-                      updateSiteSettings({ contact_links: next });
+                      patch({ contact_links: next });
                     }}
                     placeholder="WhatsApp Group"
                     className="bg-input border-border focus-visible:ring-primary rounded-sm"
@@ -532,7 +532,7 @@ const Admin = () => {
                     onChange={(e) => {
                       const next = [...siteSettings.contact_links];
                       next[i] = { ...next[i], url: e.target.value };
-                      updateSiteSettings({ contact_links: next });
+                      patch({ contact_links: next });
                     }}
                     placeholder="https://wa.me/91... or https://chat.whatsapp.com/..."
                     className="bg-input border-border focus-visible:ring-primary rounded-sm"
@@ -543,7 +543,7 @@ const Admin = () => {
                     variant="destructive"
                     onClick={() => {
                       const next = siteSettings.contact_links.filter((_, j) => j !== i);
-                      updateSiteSettings({ contact_links: next });
+                      patch({ contact_links: next });
                     }}
                     className="h-9 rounded-sm"
                   >
