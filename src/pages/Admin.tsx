@@ -306,17 +306,58 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/40 sticky top-0 z-40 bg-background/80 backdrop-blur-xl">
-        <div className="container flex items-center justify-between py-4">
-          <div className="flex items-center gap-3">
+        <div className="container flex items-center justify-between gap-3 py-4">
+          <div className="flex items-center gap-3 min-w-0">
             <img src={wordmark} alt="SMMFLIX" className="h-8 object-contain drop-shadow-[0_0_12px_hsl(var(--primary)/0.45)]" />
             <div className="display text-sm font-black tracking-[0.3em] text-primary">
               ADMIN
             </div>
           </div>
-          <Link to="/" className="text-sm text-muted-foreground hover:text-primary">
-            ← Back to site
-          </Link>
+          <div className="flex items-center gap-2 shrink-0">
+            {dirty && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={discardChanges}
+                className="h-9 rounded-sm text-xs uppercase tracking-widest font-bold"
+              >
+                Discard
+              </Button>
+            )}
+            <Button
+              type="button"
+              size="sm"
+              onClick={async () => {
+                if (dirty) await publishChanges();
+              }}
+              disabled={!dirty || publishing}
+              className={`h-9 rounded-sm text-xs uppercase tracking-widest font-black ${
+                dirty
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {publishing ? "Publishing…" : dirty ? "Publish" : "Published"}
+            </Button>
+            <Link
+              to="/"
+              onClick={(e) => {
+                if (dirty && !confirm("You have unpublished changes. Leave without publishing?")) {
+                  e.preventDefault();
+                }
+              }}
+              className="text-sm text-muted-foreground hover:text-primary hidden sm:inline"
+            >
+              ← Back
+            </Link>
+          </div>
         </div>
+        {dirty && (
+          <div className="container py-2 text-[11px] uppercase tracking-widest font-bold text-amber-500 border-t border-amber-500/30 bg-amber-500/5">
+            You have unpublished changes — click Publish to push them live.
+          </div>
+        )}
       </header>
 
       <main className="container py-10 max-w-3xl space-y-6">
