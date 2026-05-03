@@ -52,18 +52,15 @@ const Status = () => {
     }
   };
 
-  // Live re-fetch every 15s while a valid result is shown
-  // (lightweight polling; users see updated status without refresh)
-  // Using setInterval inside an effect tied to orderId/result
-  // Implemented inline for simplicity:
-  if (typeof window !== "undefined") {
-    (window as any).__orderStatusPoll && clearInterval((window as any).__orderStatusPoll);
-    if (result && !result.error && orderId.trim()) {
-      (window as any).__orderStatusPoll = setInterval(() => {
-        check(orderId);
-      }, 15000);
-    }
-  }
+  // Auto-refresh every 15s while a valid result is shown
+  const checkRef = useRef(check);
+  checkRef.current = check;
+  useEffect(() => {
+    if (!result || result.error || !orderId.trim()) return;
+    const i = setInterval(() => checkRef.current(orderId), 15000);
+    return () => clearInterval(i);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.error, orderId]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
