@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,8 +42,19 @@ import {
 const Admin = () => {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
-  const settings = useSiteSettings();
+  const liveSettings = useSiteSettings();
+  const [draft, setDraft] = useState<SiteSettings | null>(null);
+  const [publishing, setPublishing] = useState(false);
+
+  // Initialize draft from live settings the first time they arrive (after row id is known).
+  useEffect(() => {
+    if (!draft && liveSettings.id) setDraft(liveSettings);
+  }, [liveSettings, draft]);
+
+  const settings = (draft ?? liveSettings) as SiteSettings;
   const siteSettings = settings; // alias for existing JSX
+  const dirty = !!draft && JSON.stringify(draft) !== JSON.stringify(liveSettings);
+
   const { categories, updates } = useApiServices();
   const [visSearch, setVisSearch] = useState("");
   const [featSearch, setFeatSearch] = useState("");
@@ -60,6 +71,28 @@ const Admin = () => {
     setTiersInput(settings.formatter_tiers.join(", "));
     setTiersInited(true);
   }
+
+  // Local-only patch: mutates draft, does NOT call backend.
+  const patch = (p: Partial<SiteSettings>) => {
+    setDraft((prev) => ({ ...(prev ?? liveSettings), ...p } as SiteSettings));
+  };
+
+  const publishChanges = async () => {
+    if (!draft || !dirty) return;
+    setPublishing(true);
+    const { error } = await updateSiteSettings(draft);
+    setPublishing(false);
+    if (error) {
+      toast({ title: "Publish failed", description: error });
+    } else {
+      toast({ title: "Published", description: "Changes are now live for all visitors." });
+    }
+  };
+
+  const discardChanges = () => {
+    setDraft(liveSettings);
+    toast({ title: "Discarded", description: "Reverted to last published settings." });
+  };
 
   const allServices = useMemo(
     () =>
@@ -215,15 +248,15 @@ const Admin = () => {
   }
 
   const update = <K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) => {
-    updateSiteSettings({ [key]: value } as Partial<SiteSettings>);
+    patch({ [key]: value } as Partial<SiteSettings>);
   };
 
-  const updateBanner = (patch: { enabled?: boolean; text?: string; link?: string }) => {
-    const p: Partial<SiteSettings> = {};
-    if (patch.enabled !== undefined) p.banner_enabled = patch.enabled;
-    if (patch.text !== undefined) p.banner_text = patch.text;
-    if (patch.link !== undefined) p.banner_link = patch.link;
-    updateSiteSettings(p);
+  const updateBanner = (p: { enabled?: boolean; text?: string; link?: string }) => {
+    const out: Partial<SiteSettings> = {};
+    if (p.enabled !== undefined) out.banner_enabled = p.enabled;
+    if (p.text !== undefined) out.banner_text = p.text;
+    if (p.link !== undefined) out.banner_link = p.link;
+    patch(out);
   };
 
   // Stats
@@ -273,17 +306,58 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/40 sticky top-0 z-40 bg-background/80 backdrop-blur-xl">
-        <div className="container flex items-center justify-between py-4">
-          <div className="flex items-center gap-3">
+        <div className="container flex items-center justify-between gap-3 py-4">
+          <div className="flex items-center gap-3 min-w-0">
             <img src={wordmark} alt="SMMFLIX" className="h-8 object-contain drop-shadow-[0_0_12px_hsl(var(--primary)/0.45)]" />
             <div className="display text-sm font-black tracking-[0.3em] text-primary">
               ADMIN
             </div>
           </div>
-          <Link to="/" className="text-sm text-muted-foreground hover:text-primary">
-            ← Back to site
-          </Link>
+          <div className="flex items-center gap-2 shrink-0">
+            {dirty && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={discardChanges}
+                className="h-9 rounded-sm text-xs uppercase tracking-widest font-bold"
+              >
+                Discard
+              </Button>
+            )}
+            <Button
+              type="button"
+              size="sm"
+              onClick={async () => {
+                if (dirty) await publishChanges();
+              }}
+              disabled={!dirty || publishing}
+              className={`h-9 rounded-sm text-xs uppercase tracking-widest font-black ${
+                dirty
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {publishing ? "Publishing…" : dirty ? "Publish" : "Published"}
+            </Button>
+            <Link
+              to="/"
+              onClick={(e) => {
+                if (dirty && !confirm("You have unpublished changes. Leave without publishing?")) {
+                  e.preventDefault();
+                }
+              }}
+              className="text-sm text-muted-foreground hover:text-primary hidden sm:inline"
+            >
+              ← Back
+            </Link>
+          </div>
         </div>
+        {dirty && (
+          <div className="container py-2 text-[11px] uppercase tracking-widest font-bold text-amber-500 border-t border-amber-500/30 bg-amber-500/5">
+            You have unpublished changes — click Publish to push them live.
+          </div>
+        )}
       </header>
 
       <main className="container py-10 max-w-3xl space-y-6">
@@ -374,17 +448,14 @@ const Admin = () => {
             </div>
             <Switch
               checked={siteSettings.qr_payment_enabled}
-              onCheckedChange={async (v) => {
-                const { error } = await updateSiteSettings({ qr_payment_enabled: v });
-                if (error) toast({ title: "Update failed", description: error });
-              }}
+              onCheckedChange={(v) => patch({ qr_payment_enabled: v })}
             />
           </div>
 
           <Field label="UPI ID">
             <Input
               value={siteSettings.upi_id}
-              onChange={(e) => updateSiteSettings({ upi_id: e.target.value })}
+              onChange={(e) => patch({ upi_id: e.target.value })}
               placeholder="yourname@okaxis"
               className="bg-input border-border focus-visible:ring-primary rounded-sm"
             />
@@ -393,7 +464,7 @@ const Admin = () => {
           <Field label="Payee Name">
             <Input
               value={siteSettings.payee_name}
-              onChange={(e) => updateSiteSettings({ payee_name: e.target.value })}
+              onChange={(e) => patch({ payee_name: e.target.value })}
               placeholder="SMMFLIX"
               className="bg-input border-border focus-visible:ring-primary rounded-sm"
             />
@@ -403,7 +474,7 @@ const Admin = () => {
             <Input
               value={siteSettings.support_whatsapp}
               onChange={(e) =>
-                updateSiteSettings({ support_whatsapp: e.target.value.replace(/[^\d]/g, "") })
+                patch({ support_whatsapp: e.target.value.replace(/[^\d]/g, "") })
               }
               placeholder="918848490476"
               inputMode="numeric"
@@ -429,7 +500,7 @@ const Admin = () => {
             <Field label="Button Text">
               <Input
                 value={siteSettings.contact_label}
-                onChange={(e) => updateSiteSettings({ contact_label: e.target.value })}
+                onChange={(e) => patch({ contact_label: e.target.value })}
                 placeholder="Contact"
                 className="bg-input border-border focus-visible:ring-primary rounded-sm"
               />
@@ -438,7 +509,7 @@ const Admin = () => {
               <select
                 value={siteSettings.contact_button_color}
                 onChange={(e) =>
-                  updateSiteSettings({ contact_button_color: e.target.value as any })
+                  patch({ contact_button_color: e.target.value as any })
                 }
                 className="h-10 w-full rounded-sm border border-border bg-input px-3 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               >
@@ -462,7 +533,7 @@ const Admin = () => {
                 size="sm"
                 variant="outline"
                 onClick={() =>
-                  updateSiteSettings({
+                  patch({
                     contact_links: [
                       ...siteSettings.contact_links,
                       { name: "", url: "" },
@@ -492,7 +563,7 @@ const Admin = () => {
                     onChange={(e) => {
                       const next = [...siteSettings.contact_links];
                       next[i] = { ...next[i], name: e.target.value };
-                      updateSiteSettings({ contact_links: next });
+                      patch({ contact_links: next });
                     }}
                     placeholder="WhatsApp Group"
                     className="bg-input border-border focus-visible:ring-primary rounded-sm"
@@ -502,7 +573,7 @@ const Admin = () => {
                     onChange={(e) => {
                       const next = [...siteSettings.contact_links];
                       next[i] = { ...next[i], url: e.target.value };
-                      updateSiteSettings({ contact_links: next });
+                      patch({ contact_links: next });
                     }}
                     placeholder="https://wa.me/91... or https://chat.whatsapp.com/..."
                     className="bg-input border-border focus-visible:ring-primary rounded-sm"
@@ -513,7 +584,7 @@ const Admin = () => {
                     variant="destructive"
                     onClick={() => {
                       const next = siteSettings.contact_links.filter((_, j) => j !== i);
-                      updateSiteSettings({ contact_links: next });
+                      patch({ contact_links: next });
                     }}
                     className="h-9 rounded-sm"
                   >
