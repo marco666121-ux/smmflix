@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import Admin from "./pages/Admin.tsx";
 import ServiceDetail from "./pages/ServiceDetail.tsx";
+import Status from "./pages/Status.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "@/hooks/useAuth";
 import { BanGate } from "@/components/BanGate";
