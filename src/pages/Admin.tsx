@@ -42,8 +42,19 @@ import {
 const Admin = () => {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
-  const settings = useSiteSettings();
+  const liveSettings = useSiteSettings();
+  const [draft, setDraft] = useState<SiteSettings | null>(null);
+  const [publishing, setPublishing] = useState(false);
+
+  // Initialize draft from live settings the first time they arrive (after row id is known).
+  useEffect(() => {
+    if (!draft && liveSettings.id) setDraft(liveSettings);
+  }, [liveSettings, draft]);
+
+  const settings = (draft ?? liveSettings) as SiteSettings;
   const siteSettings = settings; // alias for existing JSX
+  const dirty = !!draft && JSON.stringify(draft) !== JSON.stringify(liveSettings);
+
   const { categories, updates } = useApiServices();
   const [visSearch, setVisSearch] = useState("");
   const [featSearch, setFeatSearch] = useState("");
@@ -60,6 +71,28 @@ const Admin = () => {
     setTiersInput(settings.formatter_tiers.join(", "));
     setTiersInited(true);
   }
+
+  // Local-only patch: mutates draft, does NOT call backend.
+  const patch = (p: Partial<SiteSettings>) => {
+    setDraft((prev) => ({ ...(prev ?? liveSettings), ...p } as SiteSettings));
+  };
+
+  const publishChanges = async () => {
+    if (!draft || !dirty) return;
+    setPublishing(true);
+    const { error } = await updateSiteSettings(draft);
+    setPublishing(false);
+    if (error) {
+      toast({ title: "Publish failed", description: error });
+    } else {
+      toast({ title: "Published", description: "Changes are now live for all visitors." });
+    }
+  };
+
+  const discardChanges = () => {
+    setDraft(liveSettings);
+    toast({ title: "Discarded", description: "Reverted to last published settings." });
+  };
 
   const allServices = useMemo(
     () =>
