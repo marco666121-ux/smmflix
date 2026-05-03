@@ -407,10 +407,7 @@ const Admin = () => {
             </div>
             <Switch
               checked={siteSettings.qr_payment_enabled}
-              onCheckedChange={async (v) => {
-                const { error } = await Promise.resolve({ error: (patch({ qr_payment_enabled: v }), undefined) });
-                if (error) toast({ title: "Update failed", description: error });
-              }}
+              onCheckedChange={(v) => patch({ qr_payment_enabled: v })}
             />
           </div>
 
