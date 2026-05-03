@@ -248,15 +248,15 @@ const Admin = () => {
   }
 
   const update = <K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) => {
-    updateSiteSettings({ [key]: value } as Partial<SiteSettings>);
+    patch({ [key]: value } as Partial<SiteSettings>);
   };
 
-  const updateBanner = (patch: { enabled?: boolean; text?: string; link?: string }) => {
-    const p: Partial<SiteSettings> = {};
-    if (patch.enabled !== undefined) p.banner_enabled = patch.enabled;
-    if (patch.text !== undefined) p.banner_text = patch.text;
-    if (patch.link !== undefined) p.banner_link = patch.link;
-    updateSiteSettings(p);
+  const updateBanner = (p: { enabled?: boolean; text?: string; link?: string }) => {
+    const out: Partial<SiteSettings> = {};
+    if (p.enabled !== undefined) out.banner_enabled = p.enabled;
+    if (p.text !== undefined) out.banner_text = p.text;
+    if (p.link !== undefined) out.banner_link = p.link;
+    patch(out);
   };
 
   // Stats
