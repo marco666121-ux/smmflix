@@ -762,6 +762,15 @@ const Index = () => {
           }}
         />
       )}
+
+      {/* Floating Status button */}
+      <Link
+        to="/status"
+        className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 inline-flex items-center gap-2 h-12 px-8 rounded-full border border-primary/60 bg-background/80 backdrop-blur-md text-primary font-black tracking-wider uppercase text-sm shadow-[0_0_24px_hsl(var(--primary)/0.35)] hover:bg-primary/10 transition-colors"
+      >
+        <LineChart className="h-4 w-4" />
+        Status
+      </Link>
     </div>
   );
 };
