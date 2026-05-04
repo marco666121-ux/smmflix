@@ -79,19 +79,41 @@ const Refill = () => {
 
         {result && (
           <div className="card-surface border border-border/60 rounded-sm p-5 space-y-3">
-            {result.error ? (
-              <div className="text-sm text-destructive font-bold text-center py-4">{result.error}</div>
-            ) : (
-              <>
-                <div className="text-[10px] uppercase tracking-widest font-black text-primary">Order #{orderId}</div>
-                <div className="border border-border rounded-sm bg-card px-3 py-3 text-center">
-                  <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold mb-1">Refill ID</div>
-                  <div className="text-base font-black text-primary break-all">
-                    {result.refill ?? JSON.stringify(result)}
+            {(() => {
+              const isError = !!result.error;
+              const status = String(result.status ?? (isError ? "Failed" : "Success"));
+              const message =
+                result.error ??
+                result.message ??
+                (result.refill ? `Refill ID: ${result.refill}` : "Refill request submitted.");
+              const ok = !isError && /success/i.test(status);
+              return (
+                <>
+                  <div className="text-[10px] uppercase tracking-widest font-black text-primary">
+                    Order #{orderId}
                   </div>
-                </div>
-              </>
-            )}
+                  <div
+                    className={`border rounded-sm bg-card px-4 py-4 text-center space-y-2 ${
+                      ok ? "border-emerald-500/50" : "border-destructive/50"
+                    }`}
+                  >
+                    <div
+                      className={`text-[11px] uppercase tracking-widest font-black ${
+                        ok ? "text-emerald-400" : "text-destructive"
+                      }`}
+                    >
+                      {ok ? "Success" : "Failed"}
+                    </div>
+                    <div className="text-sm font-bold text-foreground">{message}</div>
+                    {result.refill && (
+                      <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                        Refill ID: <span className="text-primary font-black">{result.refill}</span>
+                      </div>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
           </div>
         )}
       </main>
