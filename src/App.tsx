@@ -7,6 +7,7 @@ import Index from "./pages/Index.tsx";
 import Admin from "./pages/Admin.tsx";
 import ServiceDetail from "./pages/ServiceDetail.tsx";
 import Status from "./pages/Status.tsx";
+import Refill from "./pages/Refill.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "@/hooks/useAuth";
 import { BanGate } from "@/components/BanGate";
@@ -25,6 +26,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/service/:id" element={<ServiceDetail />} />
               <Route path="/status" element={<Status />} />
+              <Route path="/refill" element={<Refill />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

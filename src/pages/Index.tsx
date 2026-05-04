@@ -21,7 +21,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { toast } from "@/hooks/use-toast";
-import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, TrendingUp, ArrowUp, ArrowDown, Clock, History, Link2, Sun, Moon, LineChart } from "lucide-react";
+import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, TrendingUp, ArrowUp, ArrowDown, Clock, History, Link2, Sun, Moon, LineChart, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RedeemPopover } from "@/components/RedeemPopover";
 import { ContactDropdown } from "@/components/ContactDropdown";
@@ -763,14 +763,25 @@ const Index = () => {
         />
       )}
 
-      {/* Floating Status button */}
-      <Link
-        to="/status"
-        className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 inline-flex items-center gap-2 h-12 px-8 rounded-full border border-primary/60 bg-background/80 backdrop-blur-md text-primary font-black tracking-wider uppercase text-sm shadow-[0_0_24px_hsl(var(--primary)/0.35)] hover:bg-primary/10 transition-colors"
-      >
-        <LineChart className="h-4 w-4" />
-        Status
-      </Link>
+      {/* Floating Refill + Status bar */}
+      <div className="fixed bottom-4 left-0 right-0 z-40 px-4 pointer-events-none">
+        <div className="container max-w-md flex items-center gap-3 pointer-events-auto">
+          <Link
+            to="/refill"
+            className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full border border-primary/60 bg-background/80 backdrop-blur-md text-primary font-black tracking-wider uppercase text-sm shadow-[0_0_24px_hsl(var(--primary)/0.35)] hover:bg-primary/10 transition-colors"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refill
+          </Link>
+          <Link
+            to="/status"
+            className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full border border-primary/60 bg-background/80 backdrop-blur-md text-primary font-black tracking-wider uppercase text-sm shadow-[0_0_24px_hsl(var(--primary)/0.35)] hover:bg-primary/10 transition-colors"
+          >
+            <LineChart className="h-4 w-4" />
+            Status
+          </Link>
+        </div>
+      </div>
     </div>
   );
 };

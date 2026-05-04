@@ -2,3 +2,6 @@ project_id = "ypwixtlxdvodutzbfxlq"
 
 [functions.order-status]
 verify_jwt = false
+
+[functions.order-refill]
+verify_jwt = false
