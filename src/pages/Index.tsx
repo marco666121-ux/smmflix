@@ -668,62 +668,76 @@ const Index = () => {
             </div>
           )}
 
-          {(!siteSettings.minimal_mode || service) && (
-          <>
-          {/* Quantity */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Quantity</Label>
-            <Input
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              placeholder={service ? `min ${service.min}, max ${service.max}` : "Select a service first"}
-              className="bg-input border-border focus-visible:ring-primary rounded-sm"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">🔗 Profile / Post Link</Label>
-            <Input
-              type="url"
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              placeholder="Enter your profile or post link"
-              className="bg-input border-border focus-visible:ring-primary rounded-sm"
-            />
-          </div>
-
-
-          <div className="rounded-sm border border-primary/40 bg-primary/10 px-4 py-3 space-y-1.5">
-            {appliedRedeem && (
+          {(() => {
+            const v = siteSettings.ui_visibility || {};
+            const minimalGate = siteSettings.minimal_mode && !service;
+            const showQty = !minimalGate && !(v.progressive_quantity && !service);
+            const showLink = !minimalGate && !(v.progressive_link && !service);
+            const showTotal = !minimalGate && !(v.progressive_total && !service);
+            const showContinue = !minimalGate && !(v.progressive_continue && !service);
+            return (
               <>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="uppercase tracking-widest text-muted-foreground font-bold">Subtotal</span>
-                  <span className="font-bold text-foreground">₹ {subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="uppercase tracking-widest text-muted-foreground font-bold">Discount</span>
-                  <span className="font-bold text-primary">−₹ {discount.toFixed(2)}</span>
-                </div>
-                <div className="h-px bg-border/60 my-1" />
-              </>
-            )}
-            <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Total</span>
-              <span className="text-3xl font-black text-primary display">
-                ₹{total.toFixed(2)}
-              </span>
-            </div>
-          </div>
+                {showQty && (
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Quantity</Label>
+                    <Input
+                      type="number"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      placeholder={service ? `min ${service.min}, max ${service.max}` : "Select a service first"}
+                      className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                    />
+                  </div>
+                )}
 
-          <Button
-            type="submit"
-            className="w-full h-12 text-base font-black tracking-widest uppercase bg-primary text-primary-foreground hover:bg-primary/90 transition-all rounded-sm shadow-[0_0_30px_hsl(var(--primary)/0.5)]"
-          >
-            Continue to Payment
-          </Button>
-          </>
-          )}
+                {showLink && (
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">🔗 Profile / Post Link</Label>
+                    <Input
+                      type="url"
+                      value={link}
+                      onChange={(e) => setLink(e.target.value)}
+                      placeholder="Enter your profile or post link"
+                      className="bg-input border-border focus-visible:ring-primary rounded-sm"
+                    />
+                  </div>
+                )}
+
+                {showTotal && (
+                  <div className="rounded-sm border border-primary/40 bg-primary/10 px-4 py-3 space-y-1.5">
+                    {appliedRedeem && (
+                      <>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="uppercase tracking-widest text-muted-foreground font-bold">Subtotal</span>
+                          <span className="font-bold text-foreground">₹ {subtotal.toFixed(2)}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="uppercase tracking-widest text-muted-foreground font-bold">Discount</span>
+                          <span className="font-bold text-primary">−₹ {discount.toFixed(2)}</span>
+                        </div>
+                        <div className="h-px bg-border/60 my-1" />
+                      </>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Total</span>
+                      <span className="text-3xl font-black text-primary display">
+                        ₹{total.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {showContinue && (
+                  <Button
+                    type="submit"
+                    className="w-full h-12 text-base font-black tracking-widest uppercase bg-primary text-primary-foreground hover:bg-primary/90 transition-all rounded-sm shadow-[0_0_30px_hsl(var(--primary)/0.5)]"
+                  >
+                    Continue to Payment
+                  </Button>
+                )}
+              </>
+            );
+          })()}
         </form>
       </section>
 
