@@ -635,6 +635,10 @@ const Admin = () => {
               { key: "footer", label: "Footer (with Admin link)" },
               { key: "refill_button", label: "Floating Refill Button" },
               { key: "status_button", label: "Floating Status Button" },
+              { key: "progressive_quantity", label: "Hide Quantity until service is selected" },
+              { key: "progressive_link", label: "Hide Profile/Post Link until service is selected" },
+              { key: "progressive_total", label: "Hide Total until service is selected" },
+              { key: "progressive_continue", label: "Hide Continue Payment until service is selected" },
             ].map((item) => {
               const hidden = !!settings.ui_visibility?.[item.key];
               return (
