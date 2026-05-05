@@ -211,6 +211,7 @@ const Index = () => {
             </div>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
+            {updates.length > 0 && !siteSettings.ui_visibility?.notification_bell && (
             <Popover
               open={notifOpen}
               onOpenChange={(o) => setNotifOpen(o)}
@@ -222,11 +223,9 @@ const Index = () => {
                   className="relative h-10 w-10 grid place-items-center rounded-full border border-border bg-muted/40 text-foreground hover:bg-muted hover:border-foreground/40 transition-colors"
                 >
                   <Bell className="h-5 w-5" />
-                  {updates.length > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-primary text-primary-foreground text-[10px] font-black shadow-[0_0_10px_hsl(var(--primary)/0.7)]">
-                      {updates.length > 99 ? "99+" : updates.length}
-                    </span>
-                  )}
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-primary text-primary-foreground text-[10px] font-black shadow-[0_0_10px_hsl(var(--primary)/0.7)]">
+                    {updates.length > 99 ? "99+" : updates.length}
+                  </span>
                 </button>
               </PopoverTrigger>
               <PopoverContent
@@ -250,12 +249,7 @@ const Index = () => {
                   )}
                 </div>
                 <div className="max-h-[60vh] overflow-y-auto overscroll-contain divide-y divide-border [-webkit-overflow-scrolling:touch]">
-                  {updates.length === 0 ? (
-                    <div className="p-6 text-center text-sm text-muted-foreground">
-                      No updates in the last 24 hours.
-                    </div>
-                  ) : (
-                    updates.map((u) => {
+                  {updates.map((u) => {
                       const date = new Date(u.detectedAt);
                       const dateLabel = date.toLocaleString("en-IN", {
                         day: "numeric",
@@ -281,6 +275,8 @@ const Index = () => {
                         : isUp
                         ? "text-rose-400"
                         : "text-emerald-400";
+                      const displayNew = applyMarkup(u.newRate, markup);
+                      const displayOld = u.oldRate != null ? applyMarkup(u.oldRate, markup) : null;
                       return (
                         <div key={`${u.id}-${u.detectedAt}`} className="px-3 py-3">
                           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-2">
@@ -306,7 +302,7 @@ const Index = () => {
                                 {isNew ? (
                                   <>
                                     <Sparkles className="h-3.5 w-3.5" />
-                                    <span>₹{u.newRate.toFixed(4)}</span>
+                                    <span>₹{displayNew.toFixed(4)}</span>
                                   </>
                                 ) : (
                                   <>
@@ -315,9 +311,9 @@ const Index = () => {
                                     ) : (
                                       <ArrowDown className="h-3.5 w-3.5" strokeWidth={3} />
                                     )}
-                                    <span>₹{(u.oldRate ?? 0).toFixed(4)}</span>
+                                    <span>₹{(displayOld ?? 0).toFixed(4)}</span>
                                     <span className="opacity-70">→</span>
-                                    <span>₹{u.newRate.toFixed(4)}</span>
+                                    <span>₹{displayNew.toFixed(4)}</span>
                                   </>
                                 )}
                               </div>
@@ -325,27 +321,29 @@ const Index = () => {
                           </div>
                         </div>
                       );
-                    })
-                  )}
+                    })}
                 </div>
-                {updates.length > 0 && (
-                  <div className="px-4 py-2 text-[10px] text-center text-muted-foreground uppercase tracking-widest border-t border-border bg-card/40">
-                    Updates are kept for 24 hours
-                  </div>
-                )}
+                <div className="px-4 py-2 text-[10px] text-center text-muted-foreground uppercase tracking-widest border-t border-border bg-card/40">
+                  Updates are kept for 24 hours
+                </div>
               </PopoverContent>
             </Popover>
-            <RedeemPopover
-              applied={appliedRedeem}
-              onApply={(a) => setAppliedRedeem(a)}
-              onClear={clearRedeem}
-            />
-            <ContactDropdown
-              label={siteSettings.contact_label}
-              color={siteSettings.contact_button_color}
-              links={siteSettings.contact_links}
-              fallbackUrl={supportWa}
-            />
+            )}
+            {!siteSettings.ui_visibility?.redeem_button && (
+              <RedeemPopover
+                applied={appliedRedeem}
+                onApply={(a) => setAppliedRedeem(a)}
+                onClear={clearRedeem}
+              />
+            )}
+            {!siteSettings.ui_visibility?.contact_button && (
+              <ContactDropdown
+                label={siteSettings.contact_label}
+                color={siteSettings.contact_button_color}
+                links={siteSettings.contact_links}
+                fallbackUrl={supportWa}
+              />
+            )}
           </div>
         </div>
       </header>
@@ -374,6 +372,7 @@ const Index = () => {
       )}
 
       {/* Netflix-style hero */}
+      {!siteSettings.minimal_mode && !siteSettings.ui_visibility?.hero && (
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background pointer-events-none" />
         <div className="absolute -top-20 -right-20 w-[500px] h-[500px] rounded-full bg-primary/20 blur-[120px] pointer-events-none" />
@@ -388,9 +387,10 @@ const Index = () => {
           </p>
         </div>
       </section>
+      )}
 
       {/* Featured row */}
-      {featuredItems.length > 0 && (
+      {!siteSettings.minimal_mode && !siteSettings.ui_visibility?.featured_section && featuredItems.length > 0 && (
         <section className="container pb-10">
           <div className="flex items-center gap-2 mb-4">
             <Star className="h-5 w-5 text-primary fill-primary" />
@@ -668,6 +668,8 @@ const Index = () => {
             </div>
           )}
 
+          {(!siteSettings.minimal_mode || service) && (
+          <>
           {/* Quantity */}
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Quantity</Label>
@@ -720,12 +722,15 @@ const Index = () => {
           >
             Continue to Payment
           </Button>
+          </>
+          )}
         </form>
       </section>
 
-      <Guidelines />
+      {!siteSettings.minimal_mode && !siteSettings.ui_visibility?.guidelines && <Guidelines />}
 
       {/* Features — Netflix card style */}
+      {!siteSettings.minimal_mode && !siteSettings.ui_visibility?.feature_cards && (
       <section className="container pb-20 grid sm:grid-cols-3 gap-4">
         {[
           { icon: Rocket, title: "FAST DELIVERY", desc: "Orders start within minutes." },
@@ -744,10 +749,13 @@ const Index = () => {
           </div>
         ))}
       </section>
+      )}
 
-      <footer className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground uppercase tracking-widest">
+      {!siteSettings.ui_visibility?.footer && (
+      <footer className="border-t border-border/40 py-6 pb-28 text-center text-xs text-muted-foreground uppercase tracking-widest">
         © {new Date().getFullYear()} <span className="text-primary font-black">SMMFLIX</span> · Premium Services. Premium Results. <Link to="/admin" className="ml-2 hover:text-primary">Admin</Link>
       </footer>
+      )}
 
       {service && (
         <PaymentModal
@@ -764,8 +772,10 @@ const Index = () => {
       )}
 
       {/* Floating Refill + Status bar */}
+      {(!siteSettings.ui_visibility?.refill_button || !siteSettings.ui_visibility?.status_button) && (
       <div className="fixed bottom-4 left-0 right-0 z-40 px-4 pointer-events-none">
         <div className="container max-w-md flex items-center gap-3 pointer-events-auto">
+          {!siteSettings.ui_visibility?.refill_button && (
           <Link
             to="/refill"
             className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full border border-primary/60 bg-background/80 backdrop-blur-md text-primary font-black tracking-wider uppercase text-sm shadow-[0_0_24px_hsl(var(--primary)/0.35)] hover:bg-primary/10 transition-colors"
@@ -773,6 +783,8 @@ const Index = () => {
             <RefreshCw className="h-4 w-4" />
             Refill
           </Link>
+          )}
+          {!siteSettings.ui_visibility?.status_button && (
           <Link
             to="/status"
             className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full border border-primary/60 bg-background/80 backdrop-blur-md text-primary font-black tracking-wider uppercase text-sm shadow-[0_0_24px_hsl(var(--primary)/0.35)] hover:bg-primary/10 transition-colors"
@@ -780,8 +792,10 @@ const Index = () => {
             <LineChart className="h-4 w-4" />
             Status
           </Link>
+          )}
         </div>
       </div>
+      )}
     </div>
   );
 };

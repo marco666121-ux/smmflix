@@ -597,6 +597,77 @@ const Admin = () => {
         </section>
 
         {/* Users & Bans */}
+        {/* UI Editor */}
+        <section className="card-surface border border-border/60 rounded-sm p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Eye className="h-5 w-5 text-primary" />
+            <h2 className="display text-xl font-black tracking-wider text-primary">UI EDITOR</h2>
+          </div>
+
+          <div className="flex items-center justify-between border border-border bg-muted/30 p-4 rounded-sm">
+            <div>
+              <div className="font-bold text-foreground">Minimal Mode</div>
+              <div className="text-xs text-muted-foreground">
+                {settings.minimal_mode
+                  ? "ON — Visitors only see search, Cheapest, and category. Service details/quantity/payment appear after they pick a service."
+                  : "OFF — Full homepage layout (hero, featured, features, guidelines)."}
+              </div>
+            </div>
+            <Switch
+              checked={settings.minimal_mode}
+              onCheckedChange={(v) => patch({ minimal_mode: v })}
+            />
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            Toggle individual UI elements. Hidden elements disappear from the live site after you publish.
+          </p>
+
+          <div className="border border-border rounded-sm divide-y divide-border bg-card">
+            {[
+              { key: "notification_bell", label: "Notification Bell (header)" },
+              { key: "redeem_button", label: "Redeem / Tag Button (header)" },
+              { key: "contact_button", label: "Contact Button (header)" },
+              { key: "hero", label: "Hero Section (big logo)" },
+              { key: "featured_section", label: "Featured Services Row" },
+              { key: "guidelines", label: "Guidelines Section" },
+              { key: "feature_cards", label: "Feature Cards (Fast / Safe / Best Prices)" },
+              { key: "footer", label: "Footer (with Admin link)" },
+              { key: "refill_button", label: "Floating Refill Button" },
+              { key: "status_button", label: "Floating Status Button" },
+            ].map((item) => {
+              const hidden = !!settings.ui_visibility?.[item.key];
+              return (
+                <button
+                  type="button"
+                  key={item.key}
+                  onClick={() => {
+                    const next = { ...(settings.ui_visibility || {}) };
+                    if (hidden) delete next[item.key];
+                    else next[item.key] = true;
+                    patch({ ui_visibility: next });
+                  }}
+                  className={`w-full flex items-center justify-between gap-3 p-3 text-left transition-colors ${
+                    hidden ? "bg-destructive/10" : "hover:bg-primary/5"
+                  }`}
+                >
+                  <span className="text-sm font-semibold">{item.label}</span>
+                  {hidden ? (
+                    <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-black text-destructive">
+                      <EyeOff className="h-4 w-4" /> Hidden
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-black text-emerald-500">
+                      <Eye className="h-4 w-4" /> Shown
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Users & Bans */}
         <UsersAndBans />
 
         {/* Banner */}

@@ -30,6 +30,8 @@ export type SiteSettings = {
   contact_label: string;
   contact_button_color: ContactColor;
   contact_links: ContactLink[];
+  minimal_mode: boolean;
+  ui_visibility: Record<string, boolean>; // key -> hidden(true)/visible(false|undef)
 };
 
 export const DEFAULT_FORMATTER_TIERS = [
@@ -59,6 +61,8 @@ const DEFAULT: SiteSettings = {
   contact_label: "Contact",
   contact_button_color: "emerald",
   contact_links: [{ name: "WhatsApp Chat", url: "https://wa.me/918848490476" }],
+  minimal_mode: false,
+  ui_visibility: {},
 };
 
 const asArr = <T,>(v: any, fallback: T[]): T[] =>
@@ -92,6 +96,10 @@ const normalize = (raw: any): SiteSettings => ({
       url: String(c?.url ?? "").trim(),
     }))
     .filter((c) => c.name && c.url),
+  minimal_mode: !!raw?.minimal_mode,
+  ui_visibility: (raw?.ui_visibility && typeof raw.ui_visibility === "object" && !Array.isArray(raw.ui_visibility))
+    ? (raw.ui_visibility as Record<string, boolean>)
+    : {},
 });
 
 let cache: SiteSettings | null = null;
