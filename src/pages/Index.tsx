@@ -372,6 +372,7 @@ const Index = () => {
       )}
 
       {/* Netflix-style hero */}
+      {!siteSettings.minimal_mode && !siteSettings.ui_visibility?.hero && (
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background pointer-events-none" />
         <div className="absolute -top-20 -right-20 w-[500px] h-[500px] rounded-full bg-primary/20 blur-[120px] pointer-events-none" />
@@ -386,9 +387,10 @@ const Index = () => {
           </p>
         </div>
       </section>
+      )}
 
       {/* Featured row */}
-      {featuredItems.length > 0 && (
+      {!siteSettings.minimal_mode && !siteSettings.ui_visibility?.featured_section && featuredItems.length > 0 && (
         <section className="container pb-10">
           <div className="flex items-center gap-2 mb-4">
             <Star className="h-5 w-5 text-primary fill-primary" />
