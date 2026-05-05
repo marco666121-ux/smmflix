@@ -668,6 +668,8 @@ const Index = () => {
             </div>
           )}
 
+          {(!siteSettings.minimal_mode || service) && (
+          <>
           {/* Quantity */}
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Quantity</Label>
@@ -720,12 +722,15 @@ const Index = () => {
           >
             Continue to Payment
           </Button>
+          </>
+          )}
         </form>
       </section>
 
-      <Guidelines />
+      {!siteSettings.minimal_mode && !siteSettings.ui_visibility?.guidelines && <Guidelines />}
 
       {/* Features — Netflix card style */}
+      {!siteSettings.minimal_mode && !siteSettings.ui_visibility?.feature_cards && (
       <section className="container pb-20 grid sm:grid-cols-3 gap-4">
         {[
           { icon: Rocket, title: "FAST DELIVERY", desc: "Orders start within minutes." },
@@ -744,10 +749,13 @@ const Index = () => {
           </div>
         ))}
       </section>
+      )}
 
-      <footer className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground uppercase tracking-widest">
+      {!siteSettings.ui_visibility?.footer && (
+      <footer className="border-t border-border/40 py-6 pb-28 text-center text-xs text-muted-foreground uppercase tracking-widest">
         © {new Date().getFullYear()} <span className="text-primary font-black">SMMFLIX</span> · Premium Services. Premium Results. <Link to="/admin" className="ml-2 hover:text-primary">Admin</Link>
       </footer>
+      )}
 
       {service && (
         <PaymentModal
@@ -764,8 +772,10 @@ const Index = () => {
       )}
 
       {/* Floating Refill + Status bar */}
+      {(!siteSettings.ui_visibility?.refill_button || !siteSettings.ui_visibility?.status_button) && (
       <div className="fixed bottom-4 left-0 right-0 z-40 px-4 pointer-events-none">
         <div className="container max-w-md flex items-center gap-3 pointer-events-auto">
+          {!siteSettings.ui_visibility?.refill_button && (
           <Link
             to="/refill"
             className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full border border-primary/60 bg-background/80 backdrop-blur-md text-primary font-black tracking-wider uppercase text-sm shadow-[0_0_24px_hsl(var(--primary)/0.35)] hover:bg-primary/10 transition-colors"
@@ -773,6 +783,8 @@ const Index = () => {
             <RefreshCw className="h-4 w-4" />
             Refill
           </Link>
+          )}
+          {!siteSettings.ui_visibility?.status_button && (
           <Link
             to="/status"
             className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full border border-primary/60 bg-background/80 backdrop-blur-md text-primary font-black tracking-wider uppercase text-sm shadow-[0_0_24px_hsl(var(--primary)/0.35)] hover:bg-primary/10 transition-colors"
@@ -780,9 +792,10 @@ const Index = () => {
             <LineChart className="h-4 w-4" />
             Status
           </Link>
+          )}
         </div>
       </div>
-    </div>
+      )}
   );
 };
 
