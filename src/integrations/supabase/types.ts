@@ -108,6 +108,7 @@ export type Database = {
           hidden_category_ids: Json
           hidden_service_ids: Json
           id: string
+          minimal_mode: boolean
           payee_name: string
           price_markup_percent: number
           qr_payment_enabled: boolean
@@ -118,6 +119,7 @@ export type Database = {
           tier_min: number
           tier_mode: string
           tier_step: number
+          ui_visibility: Json
           updated_at: string
           upi_id: string
         }
@@ -133,6 +135,7 @@ export type Database = {
           hidden_category_ids?: Json
           hidden_service_ids?: Json
           id?: string
+          minimal_mode?: boolean
           payee_name?: string
           price_markup_percent?: number
           qr_payment_enabled?: boolean
@@ -143,6 +146,7 @@ export type Database = {
           tier_min?: number
           tier_mode?: string
           tier_step?: number
+          ui_visibility?: Json
           updated_at?: string
           upi_id?: string
         }
@@ -158,6 +162,7 @@ export type Database = {
           hidden_category_ids?: Json
           hidden_service_ids?: Json
           id?: string
+          minimal_mode?: boolean
           payee_name?: string
           price_markup_percent?: number
           qr_payment_enabled?: boolean
@@ -168,6 +173,7 @@ export type Database = {
           tier_min?: number
           tier_mode?: string
           tier_step?: number
+          ui_visibility?: Json
           updated_at?: string
           upi_id?: string
         }
