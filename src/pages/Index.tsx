@@ -211,6 +211,7 @@ const Index = () => {
             </div>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
+            {updates.length > 0 && !siteSettings.ui_visibility?.notification_bell && (
             <Popover
               open={notifOpen}
               onOpenChange={(o) => setNotifOpen(o)}
@@ -222,11 +223,9 @@ const Index = () => {
                   className="relative h-10 w-10 grid place-items-center rounded-full border border-border bg-muted/40 text-foreground hover:bg-muted hover:border-foreground/40 transition-colors"
                 >
                   <Bell className="h-5 w-5" />
-                  {updates.length > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-primary text-primary-foreground text-[10px] font-black shadow-[0_0_10px_hsl(var(--primary)/0.7)]">
-                      {updates.length > 99 ? "99+" : updates.length}
-                    </span>
-                  )}
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-primary text-primary-foreground text-[10px] font-black shadow-[0_0_10px_hsl(var(--primary)/0.7)]">
+                    {updates.length > 99 ? "99+" : updates.length}
+                  </span>
                 </button>
               </PopoverTrigger>
               <PopoverContent
@@ -250,12 +249,7 @@ const Index = () => {
                   )}
                 </div>
                 <div className="max-h-[60vh] overflow-y-auto overscroll-contain divide-y divide-border [-webkit-overflow-scrolling:touch]">
-                  {updates.length === 0 ? (
-                    <div className="p-6 text-center text-sm text-muted-foreground">
-                      No updates in the last 24 hours.
-                    </div>
-                  ) : (
-                    updates.map((u) => {
+                  {updates.map((u) => {
                       const date = new Date(u.detectedAt);
                       const dateLabel = date.toLocaleString("en-IN", {
                         day: "numeric",
@@ -281,6 +275,8 @@ const Index = () => {
                         : isUp
                         ? "text-rose-400"
                         : "text-emerald-400";
+                      const displayNew = applyMarkup(u.newRate, markup);
+                      const displayOld = u.oldRate != null ? applyMarkup(u.oldRate, markup) : null;
                       return (
                         <div key={`${u.id}-${u.detectedAt}`} className="px-3 py-3">
                           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-2">
@@ -306,7 +302,7 @@ const Index = () => {
                                 {isNew ? (
                                   <>
                                     <Sparkles className="h-3.5 w-3.5" />
-                                    <span>₹{u.newRate.toFixed(4)}</span>
+                                    <span>₹{displayNew.toFixed(4)}</span>
                                   </>
                                 ) : (
                                   <>
@@ -315,9 +311,9 @@ const Index = () => {
                                     ) : (
                                       <ArrowDown className="h-3.5 w-3.5" strokeWidth={3} />
                                     )}
-                                    <span>₹{(u.oldRate ?? 0).toFixed(4)}</span>
+                                    <span>₹{(displayOld ?? 0).toFixed(4)}</span>
                                     <span className="opacity-70">→</span>
-                                    <span>₹{u.newRate.toFixed(4)}</span>
+                                    <span>₹{displayNew.toFixed(4)}</span>
                                   </>
                                 )}
                               </div>
@@ -325,27 +321,29 @@ const Index = () => {
                           </div>
                         </div>
                       );
-                    })
-                  )}
+                    })}
                 </div>
-                {updates.length > 0 && (
-                  <div className="px-4 py-2 text-[10px] text-center text-muted-foreground uppercase tracking-widest border-t border-border bg-card/40">
-                    Updates are kept for 24 hours
-                  </div>
-                )}
+                <div className="px-4 py-2 text-[10px] text-center text-muted-foreground uppercase tracking-widest border-t border-border bg-card/40">
+                  Updates are kept for 24 hours
+                </div>
               </PopoverContent>
             </Popover>
-            <RedeemPopover
-              applied={appliedRedeem}
-              onApply={(a) => setAppliedRedeem(a)}
-              onClear={clearRedeem}
-            />
-            <ContactDropdown
-              label={siteSettings.contact_label}
-              color={siteSettings.contact_button_color}
-              links={siteSettings.contact_links}
-              fallbackUrl={supportWa}
-            />
+            )}
+            {!siteSettings.ui_visibility?.redeem_button && (
+              <RedeemPopover
+                applied={appliedRedeem}
+                onApply={(a) => setAppliedRedeem(a)}
+                onClear={clearRedeem}
+              />
+            )}
+            {!siteSettings.ui_visibility?.contact_button && (
+              <ContactDropdown
+                label={siteSettings.contact_label}
+                color={siteSettings.contact_button_color}
+                links={siteSettings.contact_links}
+                fallbackUrl={supportWa}
+              />
+            )}
           </div>
         </div>
       </header>
