@@ -110,6 +110,12 @@ const normalize = (raw: any): SiteSettings => ({
   ui_visibility: (raw?.ui_visibility && typeof raw.ui_visibility === "object" && !Array.isArray(raw.ui_visibility))
     ? (raw.ui_visibility as Record<string, boolean>)
     : {},
+  ui_text: (raw?.ui_text && typeof raw.ui_text === "object" && !Array.isArray(raw.ui_text))
+    ? (raw.ui_text as Record<string, string>)
+    : {},
+  ui_theme: (raw?.ui_theme && typeof raw.ui_theme === "object" && !Array.isArray(raw.ui_theme))
+    ? (raw.ui_theme as UiTheme)
+    : {},
 });
 
 let cache: SiteSettings | null = null;
