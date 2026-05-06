@@ -19,6 +19,7 @@ import { useApiServices } from "@/hooks/useApiServices";
 import wordmark from "@/assets/smmflix-wordmark.png";
 import { useSiteSettings, updateSiteSettings, type SiteSettings } from "@/hooks/useSiteSettings";
 import { UsersAndBans } from "@/components/UsersAndBans";
+import { UIEditorOverlay } from "@/components/UIEditorOverlay";
 import {
   ArrowLeft,
   Eye,
