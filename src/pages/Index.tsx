@@ -21,12 +21,14 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { toast } from "@/hooks/use-toast";
-import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, TrendingUp, ArrowUp, ArrowDown, Clock, History, Link2, Sun, Moon, LineChart, RefreshCw } from "lucide-react";
+import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, TrendingUp, ArrowUp, ArrowDown, Clock, History, Link2, Sun, Moon, LineChart, RefreshCw, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RedeemPopover } from "@/components/RedeemPopover";
 import { ContactDropdown } from "@/components/ContactDropdown";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useTheme } from "@/hooks/useTheme";
+import { UIEditorOverlay } from "@/components/UIEditorOverlay";
+import { ADMIN_PASSWORD } from "@/lib/adminSettings";
 
 const Index = () => {
   const [categoryId, setCategoryId] = useState<string>("");
