@@ -46,6 +46,7 @@ const Admin = () => {
   const liveSettings = useSiteSettings();
   const [draft, setDraft] = useState<SiteSettings | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
 
   // Initialize draft from live settings the first time they arrive (after row id is known).
   useEffect(() => {
