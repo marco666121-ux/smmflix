@@ -1230,6 +1230,7 @@ const Admin = () => {
 
         <p className="text-xs text-primary text-center">✓ All changes save automatically.</p>
       </main>
+      <UIEditorOverlay open={editorOpen} onClose={() => setEditorOpen(false)} />
     </div>
   );
 };
