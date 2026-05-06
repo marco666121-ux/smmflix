@@ -215,6 +215,7 @@ const Admin = () => {
               e.preventDefault();
               if (password === ADMIN_PASSWORD) {
                 setAuthed(true);
+                try { localStorage.setItem("smmflix.admin", "1"); } catch {}
               } else {
                 toast({ title: "Wrong password" });
               }
