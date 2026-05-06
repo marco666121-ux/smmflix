@@ -376,15 +376,6 @@ const Index = () => {
                 fallbackUrl={supportWa}
               />
             )}
-            <button
-              type="button"
-              onClick={openEditor}
-              aria-label="Open UI Editor"
-              title="UI Editor"
-              className="h-10 w-10 grid place-items-center rounded-full border border-border bg-muted/40 text-foreground hover:bg-muted hover:border-primary/60 hover:text-primary transition-colors"
-            >
-              <Settings2 className="h-4 w-4" />
-            </button>
           </div>
         </div>
       </header>
