@@ -21,14 +21,12 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { toast } from "@/hooks/use-toast";
-import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, TrendingUp, ArrowUp, ArrowDown, Clock, History, Link2, Sun, Moon, LineChart, RefreshCw, Settings2 } from "lucide-react";
+import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, TrendingUp, ArrowUp, ArrowDown, Clock, History, Link2, Sun, Moon, LineChart, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RedeemPopover } from "@/components/RedeemPopover";
 import { ContactDropdown } from "@/components/ContactDropdown";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useTheme } from "@/hooks/useTheme";
-import { UIEditorOverlay } from "@/components/UIEditorOverlay";
-import { ADMIN_PASSWORD } from "@/lib/adminSettings";
 
 const Index = () => {
   const [categoryId, setCategoryId] = useState<string>("");
@@ -44,7 +42,6 @@ const Index = () => {
   const { theme, toggleTheme } = useTheme();
   const { categories: rawCategories, loading, error, updates, clearUpdates } = useApiServices();
   const [notifOpen, setNotifOpen] = useState(false);
-  const [editorOpen, setEditorOpen] = useState(false);
 
   // Apply persisted UI theme overrides (primary color)
   useEffect(() => {
@@ -58,22 +55,6 @@ const Index = () => {
 
   const t = siteSettings.ui_text || {};
   const txt = (k: string, def: string) => (t[k]?.trim() ? t[k] : def);
-
-  const openEditor = () => {
-    if (typeof window === "undefined") return;
-    if (localStorage.getItem("smmflix.admin") === "1") {
-      setEditorOpen(true);
-      return;
-    }
-    const pw = window.prompt("Admin password");
-    if (pw == null) return;
-    if (pw === ADMIN_PASSWORD) {
-      try { localStorage.setItem("smmflix.admin", "1"); } catch {}
-      setEditorOpen(true);
-    } else {
-      toast({ title: "Wrong password" });
-    }
-  };
 
   const markup = siteSettings.price_markup_percent;
   const supportWa = `https://wa.me/${siteSettings.support_whatsapp || "918848490476"}`;
@@ -376,15 +357,6 @@ const Index = () => {
                 fallbackUrl={supportWa}
               />
             )}
-            <button
-              type="button"
-              onClick={openEditor}
-              aria-label="Open UI Editor"
-              title="UI Editor"
-              className="h-10 w-10 grid place-items-center rounded-full border border-border bg-muted/40 text-foreground hover:bg-muted hover:border-primary/60 hover:text-primary transition-colors"
-            >
-              <Settings2 className="h-4 w-4" />
-            </button>
           </div>
         </div>
       </header>
@@ -851,8 +823,6 @@ const Index = () => {
         </div>
       </div>
       )}
-
-      <UIEditorOverlay open={editorOpen} onClose={() => setEditorOpen(false)} />
     </div>
   );
 };
