@@ -71,6 +71,8 @@ const DEFAULT: SiteSettings = {
   contact_links: [{ name: "WhatsApp Chat", url: "https://wa.me/918848490476" }],
   minimal_mode: false,
   ui_visibility: {},
+  ui_text: {},
+  ui_theme: {},
 };
 
 const asArr = <T,>(v: any, fallback: T[]): T[] =>
