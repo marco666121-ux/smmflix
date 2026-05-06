@@ -238,7 +238,7 @@ const Index = () => {
                 className={cn("h-9 sm:h-11 object-contain", theme === "dark" && "drop-shadow-[0_0_18px_hsl(var(--primary)/0.45)]")}
               />
               <div className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mt-1">
-                Premium Services. Premium Results.
+                {txt("logo_subtitle", "Premium Services. Premium Results.")}
               </div>
             </div>
           </Link>
