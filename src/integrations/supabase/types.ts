@@ -119,6 +119,8 @@ export type Database = {
           tier_min: number
           tier_mode: string
           tier_step: number
+          ui_text: Json
+          ui_theme: Json
           ui_visibility: Json
           updated_at: string
           upi_id: string
@@ -146,6 +148,8 @@ export type Database = {
           tier_min?: number
           tier_mode?: string
           tier_step?: number
+          ui_text?: Json
+          ui_theme?: Json
           ui_visibility?: Json
           updated_at?: string
           upi_id?: string
@@ -173,6 +177,8 @@ export type Database = {
           tier_min?: number
           tier_mode?: string
           tier_step?: number
+          ui_text?: Json
+          ui_theme?: Json
           ui_visibility?: Json
           updated_at?: string
           upi_id?: string
