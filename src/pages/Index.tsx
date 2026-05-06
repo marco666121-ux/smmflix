@@ -836,7 +836,7 @@ const Index = () => {
             className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full border border-primary/60 bg-background/80 backdrop-blur-md text-primary font-black tracking-wider uppercase text-sm shadow-[0_0_24px_hsl(var(--primary)/0.35)] hover:bg-primary/10 transition-colors"
           >
             <RefreshCw className="h-4 w-4" />
-            Refill
+            {txt("refill_label", "Refill")}
           </Link>
           )}
           {!siteSettings.ui_visibility?.status_button && (
@@ -845,7 +845,7 @@ const Index = () => {
             className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full border border-primary/60 bg-background/80 backdrop-blur-md text-primary font-black tracking-wider uppercase text-sm shadow-[0_0_24px_hsl(var(--primary)/0.35)] hover:bg-primary/10 transition-colors"
           >
             <LineChart className="h-4 w-4" />
-            Status
+            {txt("status_label", "Status")}
           </Link>
           )}
         </div>
