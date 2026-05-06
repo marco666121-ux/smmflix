@@ -851,6 +851,8 @@ const Index = () => {
         </div>
       </div>
       )}
+
+      <UIEditorOverlay open={editorOpen} onClose={() => setEditorOpen(false)} />
     </div>
   );
 };
