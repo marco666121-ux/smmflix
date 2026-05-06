@@ -32,6 +32,14 @@ export type SiteSettings = {
   contact_links: ContactLink[];
   minimal_mode: boolean;
   ui_visibility: Record<string, boolean>; // key -> hidden(true)/visible(false|undef)
+  ui_text: Record<string, string>;        // key -> custom text override
+  ui_theme: UiTheme;
+};
+
+export type UiTheme = {
+  primary_hsl?: string;        // e.g. "0 84% 60%"
+  button_glow?: boolean;       // default true
+  hero_gradient?: boolean;     // default true
 };
 
 export const DEFAULT_FORMATTER_TIERS = [
