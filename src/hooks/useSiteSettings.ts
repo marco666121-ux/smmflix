@@ -32,6 +32,14 @@ export type SiteSettings = {
   contact_links: ContactLink[];
   minimal_mode: boolean;
   ui_visibility: Record<string, boolean>; // key -> hidden(true)/visible(false|undef)
+  ui_text: Record<string, string>;        // key -> custom text override
+  ui_theme: UiTheme;
+};
+
+export type UiTheme = {
+  primary_hsl?: string;        // e.g. "0 84% 60%"
+  button_glow?: boolean;       // default true
+  hero_gradient?: boolean;     // default true
 };
 
 export const DEFAULT_FORMATTER_TIERS = [
@@ -63,6 +71,8 @@ const DEFAULT: SiteSettings = {
   contact_links: [{ name: "WhatsApp Chat", url: "https://wa.me/918848490476" }],
   minimal_mode: false,
   ui_visibility: {},
+  ui_text: {},
+  ui_theme: {},
 };
 
 const asArr = <T,>(v: any, fallback: T[]): T[] =>
@@ -99,6 +109,12 @@ const normalize = (raw: any): SiteSettings => ({
   minimal_mode: !!raw?.minimal_mode,
   ui_visibility: (raw?.ui_visibility && typeof raw.ui_visibility === "object" && !Array.isArray(raw.ui_visibility))
     ? (raw.ui_visibility as Record<string, boolean>)
+    : {},
+  ui_text: (raw?.ui_text && typeof raw.ui_text === "object" && !Array.isArray(raw.ui_text))
+    ? (raw.ui_text as Record<string, string>)
+    : {},
+  ui_theme: (raw?.ui_theme && typeof raw.ui_theme === "object" && !Array.isArray(raw.ui_theme))
+    ? (raw.ui_theme as UiTheme)
     : {},
 });
 

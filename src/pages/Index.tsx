@@ -21,12 +21,14 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { toast } from "@/hooks/use-toast";
-import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, TrendingUp, ArrowUp, ArrowDown, Clock, History, Link2, Sun, Moon, LineChart, RefreshCw } from "lucide-react";
+import { Zap, ShieldCheck, Rocket, Search, ChevronsUpDown, Check, Bell, Sparkles, Star, Megaphone, TrendingDown, TrendingUp, ArrowUp, ArrowDown, Clock, History, Link2, Sun, Moon, LineChart, RefreshCw, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RedeemPopover } from "@/components/RedeemPopover";
 import { ContactDropdown } from "@/components/ContactDropdown";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useTheme } from "@/hooks/useTheme";
+import { UIEditorOverlay } from "@/components/UIEditorOverlay";
+import { ADMIN_PASSWORD } from "@/lib/adminSettings";
 
 const Index = () => {
   const [categoryId, setCategoryId] = useState<string>("");
@@ -42,6 +44,36 @@ const Index = () => {
   const { theme, toggleTheme } = useTheme();
   const { categories: rawCategories, loading, error, updates, clearUpdates } = useApiServices();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+
+  // Apply persisted UI theme overrides (primary color)
+  useEffect(() => {
+    const root = document.documentElement;
+    if (siteSettings.ui_theme?.primary_hsl) {
+      root.style.setProperty("--primary", siteSettings.ui_theme.primary_hsl);
+    } else {
+      root.style.removeProperty("--primary");
+    }
+  }, [siteSettings.ui_theme?.primary_hsl]);
+
+  const t = siteSettings.ui_text || {};
+  const txt = (k: string, def: string) => (t[k]?.trim() ? t[k] : def);
+
+  const openEditor = () => {
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem("smmflix.admin") === "1") {
+      setEditorOpen(true);
+      return;
+    }
+    const pw = window.prompt("Admin password");
+    if (pw == null) return;
+    if (pw === ADMIN_PASSWORD) {
+      try { localStorage.setItem("smmflix.admin", "1"); } catch {}
+      setEditorOpen(true);
+    } else {
+      toast({ title: "Wrong password" });
+    }
+  };
 
   const markup = siteSettings.price_markup_percent;
   const supportWa = `https://wa.me/${siteSettings.support_whatsapp || "918848490476"}`;
@@ -206,7 +238,7 @@ const Index = () => {
                 className={cn("h-9 sm:h-11 object-contain", theme === "dark" && "drop-shadow-[0_0_18px_hsl(var(--primary)/0.45)]")}
               />
               <div className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase mt-1">
-                Premium Services. Premium Results.
+                {txt("logo_subtitle", "Premium Services. Premium Results.")}
               </div>
             </div>
           </Link>
@@ -344,6 +376,15 @@ const Index = () => {
                 fallbackUrl={supportWa}
               />
             )}
+            <button
+              type="button"
+              onClick={openEditor}
+              aria-label="Open UI Editor"
+              title="UI Editor"
+              className="h-10 w-10 grid place-items-center rounded-full border border-border bg-muted/40 text-foreground hover:bg-muted hover:border-primary/60 hover:text-primary transition-colors"
+            >
+              <Settings2 className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </header>
@@ -383,7 +424,7 @@ const Index = () => {
             className={cn("h-20 sm:h-32 object-contain mb-4", theme === "dark" && "drop-shadow-[0_0_40px_hsl(var(--primary)/0.6)]")}
           />
           <p className="text-muted-foreground max-w-xl mx-auto text-base sm:text-lg uppercase tracking-[0.15em] font-medium">
-            Premium Services · Premium Results
+            {txt("hero_subtitle", "Premium Services · Premium Results")}
           </p>
         </div>
       </section>
@@ -435,7 +476,7 @@ const Index = () => {
         >
           <div className="flex items-center gap-3 mb-2">
             <div className="h-1 w-10 bg-primary rounded-full" />
-            <h2 className="display text-3xl font-black tracking-wide">NEW ORDER</h2>
+            <h2 className="display text-3xl font-black tracking-wide">{txt("new_order_title", "NEW ORDER")}</h2>
             <button
               type="button"
               onClick={toggleTheme}
@@ -732,7 +773,7 @@ const Index = () => {
                     type="submit"
                     className="w-full h-12 text-base font-black tracking-widest uppercase bg-primary text-primary-foreground hover:bg-primary/90 transition-all rounded-sm shadow-[0_0_30px_hsl(var(--primary)/0.5)]"
                   >
-                    Continue to Payment
+                    {txt("continue_label", "Continue to Payment")}
                   </Button>
                 )}
               </>
@@ -767,7 +808,7 @@ const Index = () => {
 
       {!siteSettings.ui_visibility?.footer && (
       <footer className="border-t border-border/40 py-6 pb-28 text-center text-xs text-muted-foreground uppercase tracking-widest">
-        © {new Date().getFullYear()} <span className="text-primary font-black">SMMFLIX</span> · Premium Services. Premium Results. <Link to="/admin" className="ml-2 hover:text-primary">Admin</Link>
+        © {new Date().getFullYear()} <span className="text-primary font-black">SMMFLIX</span> · {txt("footer_text", "Premium Services. Premium Results.")} <Link to="/admin" className="ml-2 hover:text-primary">Admin</Link>
       </footer>
       )}
 
@@ -795,7 +836,7 @@ const Index = () => {
             className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full border border-primary/60 bg-background/80 backdrop-blur-md text-primary font-black tracking-wider uppercase text-sm shadow-[0_0_24px_hsl(var(--primary)/0.35)] hover:bg-primary/10 transition-colors"
           >
             <RefreshCw className="h-4 w-4" />
-            Refill
+            {txt("refill_label", "Refill")}
           </Link>
           )}
           {!siteSettings.ui_visibility?.status_button && (
@@ -804,12 +845,14 @@ const Index = () => {
             className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full border border-primary/60 bg-background/80 backdrop-blur-md text-primary font-black tracking-wider uppercase text-sm shadow-[0_0_24px_hsl(var(--primary)/0.35)] hover:bg-primary/10 transition-colors"
           >
             <LineChart className="h-4 w-4" />
-            Status
+            {txt("status_label", "Status")}
           </Link>
           )}
         </div>
       </div>
       )}
+
+      <UIEditorOverlay open={editorOpen} onClose={() => setEditorOpen(false)} />
     </div>
   );
 };
