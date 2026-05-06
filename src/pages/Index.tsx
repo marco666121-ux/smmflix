@@ -44,6 +44,36 @@ const Index = () => {
   const { theme, toggleTheme } = useTheme();
   const { categories: rawCategories, loading, error, updates, clearUpdates } = useApiServices();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+
+  // Apply persisted UI theme overrides (primary color)
+  useEffect(() => {
+    const root = document.documentElement;
+    if (siteSettings.ui_theme?.primary_hsl) {
+      root.style.setProperty("--primary", siteSettings.ui_theme.primary_hsl);
+    } else {
+      root.style.removeProperty("--primary");
+    }
+  }, [siteSettings.ui_theme?.primary_hsl]);
+
+  const t = siteSettings.ui_text || {};
+  const txt = (k: string, def: string) => (t[k]?.trim() ? t[k] : def);
+
+  const openEditor = () => {
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem("smmflix.admin") === "1") {
+      setEditorOpen(true);
+      return;
+    }
+    const pw = window.prompt("Admin password");
+    if (pw == null) return;
+    if (pw === ADMIN_PASSWORD) {
+      try { localStorage.setItem("smmflix.admin", "1"); } catch {}
+      setEditorOpen(true);
+    } else {
+      toast({ title: "Wrong password" });
+    }
+  };
 
   const markup = siteSettings.price_markup_percent;
   const supportWa = `https://wa.me/${siteSettings.support_whatsapp || "918848490476"}`;
