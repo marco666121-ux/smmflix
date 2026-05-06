@@ -607,6 +607,23 @@ const Admin = () => {
             <h2 className="display text-xl font-black tracking-wider text-primary">UI EDITOR</h2>
           </div>
 
+          <button
+            type="button"
+            onClick={() => setEditorOpen(true)}
+            className="w-full group relative overflow-hidden rounded-md border-2 border-primary/60 bg-gradient-to-br from-primary/15 via-primary/5 to-transparent p-5 text-left hover:border-primary transition-all shadow-[0_0_30px_hsl(var(--primary)/0.25)] hover:shadow-[0_0_40px_hsl(var(--primary)/0.5)]"
+          >
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 grid place-items-center rounded-md bg-primary/20 border border-primary/40 shrink-0">
+                <Eye className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="display text-base font-black tracking-wider text-foreground">OPEN VISUAL EDITOR</div>
+                <div className="text-xs text-muted-foreground mt-0.5">Live preview · Edit text, colors, theme & layout</div>
+              </div>
+              <span className="text-[10px] uppercase tracking-widest font-black text-primary border border-primary/50 rounded-full px-3 py-1 shrink-0">Launch →</span>
+            </div>
+          </button>
+
           <div className="flex items-center justify-between border border-border bg-muted/30 p-4 rounded-sm">
             <div>
               <div className="font-bold text-foreground">Minimal Mode</div>
