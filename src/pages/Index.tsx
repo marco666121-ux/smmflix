@@ -424,7 +424,7 @@ const Index = () => {
             className={cn("h-20 sm:h-32 object-contain mb-4", theme === "dark" && "drop-shadow-[0_0_40px_hsl(var(--primary)/0.6)]")}
           />
           <p className="text-muted-foreground max-w-xl mx-auto text-base sm:text-lg uppercase tracking-[0.15em] font-medium">
-            Premium Services · Premium Results
+            {txt("hero_subtitle", "Premium Services · Premium Results")}
           </p>
         </div>
       </section>
@@ -476,7 +476,7 @@ const Index = () => {
         >
           <div className="flex items-center gap-3 mb-2">
             <div className="h-1 w-10 bg-primary rounded-full" />
-            <h2 className="display text-3xl font-black tracking-wide">NEW ORDER</h2>
+            <h2 className="display text-3xl font-black tracking-wide">{txt("new_order_title", "NEW ORDER")}</h2>
             <button
               type="button"
               onClick={toggleTheme}
@@ -773,7 +773,7 @@ const Index = () => {
                     type="submit"
                     className="w-full h-12 text-base font-black tracking-widest uppercase bg-primary text-primary-foreground hover:bg-primary/90 transition-all rounded-sm shadow-[0_0_30px_hsl(var(--primary)/0.5)]"
                   >
-                    Continue to Payment
+                    {txt("continue_label", "Continue to Payment")}
                   </Button>
                 )}
               </>
@@ -808,7 +808,7 @@ const Index = () => {
 
       {!siteSettings.ui_visibility?.footer && (
       <footer className="border-t border-border/40 py-6 pb-28 text-center text-xs text-muted-foreground uppercase tracking-widest">
-        © {new Date().getFullYear()} <span className="text-primary font-black">SMMFLIX</span> · Premium Services. Premium Results. <Link to="/admin" className="ml-2 hover:text-primary">Admin</Link>
+        © {new Date().getFullYear()} <span className="text-primary font-black">SMMFLIX</span> · {txt("footer_text", "Premium Services. Premium Results.")} <Link to="/admin" className="ml-2 hover:text-primary">Admin</Link>
       </footer>
       )}
 
